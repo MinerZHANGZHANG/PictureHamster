@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="PictureHamster.App.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:fa="clr-namespace:UraniumUI.Icons.FontAwesome;assembly=UraniumUI.Icons.FontAwesome"
+    xmlns:local="clr-namespace:PictureHamster.App"
+    xmlns:views="clr-namespace:PictureHamster.App.Views"
+    Title="PictureHamster.App"
+    Shell.FlyoutBehavior="Flyout">
+
+    <ShellContent
+        Title="主页"
+        ContentTemplate="{DataTemplate views:MainPage}"
+        Route="MainPage">
+        <ShellContent.Icon>
+            <FontImageSource
+                FontFamily="FASolid"
+                Glyph="house"
+                Color="{StaticResource Secondary}" />
+        </ShellContent.Icon>
+    </ShellContent>
+    <ShellContent
+        Title="导入"
+        ContentTemplate="{DataTemplate views:ImportPage}"
+        Route="ImportPage">
+        <ShellContent.Icon>
+            <FontImageSource
+                FontFamily="FASolid"
+                Glyph="file-import"
+                Color="{StaticResource Secondary}" />
+        </ShellContent.Icon>
+    </ShellContent>
+    <ShellContent
+        Title="分类"
+        ContentTemplate="{DataTemplate views:ClassifyPage}"
+        Route="ClassifyPage">
+        <ShellContent.Icon>
+            <FontImageSource
+                FontFamily="FASolid"
+                Glyph="paw"
+                Color="{StaticResource Secondary}" />
+        </ShellContent.Icon>
+    </ShellContent>
+    <ShellContent
+        Title="类别"
+        ContentTemplate="{DataTemplate views:CategoryPage}"
+        Route="CategoryPage">
+        <ShellContent.Icon>
+            <FontImageSource
+                FontFamily="FASolid"
+                Glyph="folder"
+                Color="{StaticResource Secondary}" />
+        </ShellContent.Icon>
+    </ShellContent>
+    <ShellContent
+        Title="检索"
+        ContentTemplate="{DataTemplate views:RetrievePage}"
+        Route="RetrievePage">
+        <ShellContent.Icon>
+            <FontImageSource
+                FontFamily="FASolid"
+                Glyph="search"
+                Color="{StaticResource Secondary}" />
+        </ShellContent.Icon>
+    </ShellContent>
+    <ShellContent
+        Title="类别详情"
+        ContentTemplate="{DataTemplate views:CategoryDetailsPage}"
+        Route="CategoryDetailsPage">
+        <ShellContent.Icon>
+            <FontImageSource
+                FontFamily="FASolid"
+                Glyph="info"
+                Color="{StaticResource Secondary}" />
+        </ShellContent.Icon>
+    </ShellContent>
+</Shell>

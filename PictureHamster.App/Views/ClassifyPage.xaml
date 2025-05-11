@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<!--  分类界面，提供配置接口，并对接多模态LLM模型进行自动图像分类的功能  -->
+<ContentPage
+    x:Class="PictureHamster.App.Views.ClassifyPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:fa="clr-namespace:UraniumUI.Icons.FontAwesome;assembly=UraniumUI.Icons.FontAwesome"
+    xmlns:models="clr-namespace:PictureHamster.Share.Models;assembly=PictureHamster.Share"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+    xmlns:viewModel="clr-namespace:PictureHamster.App.ViewModels"
+    Title="ClassifyPage"
+    x:DataType="viewModel:ClassifyPageViewModel">
+
+    <ScrollView>
+        <Grid Padding="10" RowSpacing="10">
+            <!--  Define rows for each UI element  -->
+            <Grid.RowDefinitions>
+                <!--  接口类型  -->
+                <RowDefinition Height="Auto" />
+                <!--  接口地址  -->
+                <RowDefinition Height="Auto" />
+                <!--  接口ApiKey  -->
+                <RowDefinition Height="Auto" />
+                <!--  模型Id  -->
+                <RowDefinition Height="Auto" />
+                <!--  文件夹列表  -->
+                <RowDefinition Height="*" />
+                <!--  进度条  -->
+                <RowDefinition Height="Auto" />
+                <!--  跳过已分类  -->
+                <RowDefinition Height="Auto" />
+                <!--  跳过手动标记  -->
+                <RowDefinition Height="Auto" />
+                <!--  开始分类按钮  -->
+                <RowDefinition Height="Auto" />
+                <!--  浏览分类结果  -->
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!--  Row 0: 接口类型  -->
+            <Grid Grid.Row="0">
+                <Picker
+                    Title="选择接口类型"
+                    Grid.Column="1"
+                    ItemsSource="{Binding ApiServiceTypes}"
+                    SelectedItem="{Binding ApiServiceType}" />
+            </Grid>
+
+            <!--  Row 1: 接口地址  -->
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Label Text="接口地址" VerticalOptions="Center" />
+                <Entry
+                    Grid.Column="1"
+                    Placeholder="输入有效的API地址"
+                    Text="{Binding ApiServiceUrl}" />
+            </Grid>
+
+            <!--  Row 2: 接口ApiKey  -->
+            <Grid Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Label Text="接口ApiKey" VerticalOptions="Center" />
+                <Entry
+                    Grid.Column="1"
+                    Placeholder="输入有效的ApiKey"
+                    Text="{Binding ApiServiceKey}" />
+            </Grid>
+
+            <!--  Row 3: 模型信息  -->
+            <Grid Grid.Row="3">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Label Text="模型" VerticalOptions="Center" />
+                <Entry
+                    Grid.Column="1"
+                    Placeholder="输入有效的ModelId"
+                    Text="{Binding ModelId}" />
+                <Button
+                    Grid.Column="2"
+                    Command="{Binding OpenModelSettingDialogCommand}"
+                    Text="模型设置" />
+            </Grid>
+
+            <!--  Row 4: 文件夹列表  -->
+            <CollectionView
+                Grid.Row="4"
+                Margin="0,10,0,10"
+                ItemsSource="{Binding DirectoryItems}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:DirectoryItem">
+                        <Grid Padding="5" ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <CheckBox IsChecked="{Binding IsSelected}" VerticalOptions="Center" />
+                            <Border Grid.Column="1">
+                                <Image
+                                    Aspect="AspectFit"
+                                    HeightRequest="100"
+                                    Source="{Binding LatestPicture.Path}"
+                                    WidthRequest="100" />
+                            </Border>
+
+                            <Label
+                                Grid.Column="2"
+                                Text="{Binding Name}"
+                                VerticalOptions="Center" />
+                            <Label
+                                Grid.Column="3"
+                                Text="{Binding ImageCountText}"
+                                VerticalOptions="Center" />
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <!--  Row 5: 进度条  -->
+            <ProgressBar
+                Grid.Row="5"
+                HeightRequest="20"
+                Progress="{Binding ClassifyProgress}" />
+
+            <!--  Row 6: 跳过已分类的图像  -->
+            <StackLayout
+                Grid.Row="6"
+                Orientation="Horizontal"
+                VerticalOptions="Center">
+                <CheckBox IsChecked="{Binding IsSkipClassifiedImage}" />
+                <Label
+                    Margin="5,0"
+                    Text="是否跳过已经分类过的图像"
+                    VerticalOptions="Center" />
+            </StackLayout>
+
+            <!--  Row 7: 跳过手动标记的图像  -->
+            <StackLayout
+                Grid.Row="7"
+                Orientation="Horizontal"
+                VerticalOptions="Center">
+                <CheckBox IsChecked="{Binding IsSkipClassifiedImageByHand}" />
+                <Label
+                    Margin="5,0"
+                    Text="是否跳过手动标记过的图像"
+                    VerticalOptions="Center" />
+            </StackLayout>
+
+            <!--  Row 8: 开始分类按钮  -->
+            <Button
+                Grid.Row="8"
+                Command="{Binding ClassifyImagesCommand}"
+                Text="开始进行分类" />
+
+            <!--  Row 9: 浏览分类结果  -->
+            <Button
+                Grid.Row="9"
+                Command="{Binding ToClassificaionResultPageCommand}"
+                Text="浏览分类结果" />
+        </Grid>
+    </ScrollView>
+</ContentPage>

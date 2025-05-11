@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!--  主界面，展示应用功能描述  -->
+<uranium:UraniumContentPage
+    x:Class="PictureHamster.App.Views.MainPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:fa="clr-namespace:UraniumUI.Icons.FontAwesome;assembly=UraniumUI.Icons.FontAwesome"
+    xmlns:models="clr-namespace:PictureHamster.Share.Models;assembly=PictureHamster.Share"
+    xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+    xmlns:viewModel="clr-namespace:PictureHamster.App.ViewModels"
+    x:DataType="viewModel:MainPageViewModel">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="30,0" Spacing="25">
+            <Image
+                Aspect="AspectFit"
+                HeightRequest="185"
+                SemanticProperties.Description="dot net bot in a hovercraft number nine"
+                Source="dotnet_bot.png" />
+
+            <Label
+                SemanticProperties.HeadingLevel="Level1"
+                Style="{StaticResource Headline}"
+                Text="欢迎使用图片仓鼠" />
+
+            <Label
+                SemanticProperties.Description="A software that automatically categorizes images using AI"
+                SemanticProperties.HeadingLevel="Level2"
+                Style="{StaticResource SubHeadline}"
+                Text="——一款通过AI自动分类图片的软件" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</uranium:UraniumContentPage>

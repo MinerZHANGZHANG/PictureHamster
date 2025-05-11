@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--  检索界面，提供使用文本查找特定图片的功能  -->
+<ContentPage
+    x:Class="PictureHamster.App.Views.RetrievePage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:fa="clr-namespace:UraniumUI.Icons.FontAwesome;assembly=UraniumUI.Icons.FontAwesome"
+    xmlns:models="clr-namespace:PictureHamster.Share.Models;assembly=PictureHamster.Share"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+    xmlns:viewModel="clr-namespace:PictureHamster.App.ViewModels"
+    Title="检索图片"
+    x:DataType="viewModel:RetrievePageViewModel">
+    <Grid Margin="10" RowSpacing="10">
+        <!--  Define two rows: search area and results display  -->
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <!--  Search area  -->
+        <Grid Grid.Row="0" ColumnSpacing="10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Entry
+                x:Name="SearchEntry"
+                Margin="0,5"
+                HorizontalOptions="Fill"
+                Placeholder="请输入搜索关键词"
+                Text="{Binding SearchText}"
+                VerticalOptions="Center" />
+            <Button
+                Grid.Column="1"
+                Margin="0,5"
+                Command="{Binding SearchImagesCommand}"
+                Text="搜索"
+                VerticalOptions="Center" />
+        </Grid>
+        <!--  Results list: three columns for thumbnail, name, category  -->
+        <CollectionView
+            Grid.Row="1"
+            ItemsSource="{Binding SearchResults}"
+            SelectionMode="None">
+            <CollectionView.ItemsLayout>
+                <GridItemsLayout
+                    HorizontalItemSpacing="10"
+                    Orientation="Vertical"
+                    Span="3"
+                    VerticalItemSpacing="10" />
+            </CollectionView.ItemsLayout>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:ImageItem">
+                    <Border Padding="10" Shadow="True">
+                        <StackLayout Spacing="5">
+                            <Image
+                                Aspect="AspectFill"
+                                HeightRequest="100"
+                                Source="{Binding Path}" />
+                            <Label
+                                FontAttributes="Bold"
+                                FontSize="Medium"
+                                LineBreakMode="TailTruncation"
+                                Text="{Binding Name}" />
+                            <Label
+                                FontSize="Small"
+                                LineBreakMode="TailTruncation"
+                                Text="{Binding KeyWords}"
+                                TextColor="Gray" />
+                            <Button Command="{Binding Source={RelativeSource AncestorType={x:Type viewModel:RetrievePageViewModel}}, Path=LookupImageCommand}" Text="放大" />
+                            <Button Command="{Binding Source={RelativeSource AncestorType={x:Type viewModel:RetrievePageViewModel}}, Path=ShareImageCommand}" Text="分享" />
+                        </StackLayout>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+</ContentPage>

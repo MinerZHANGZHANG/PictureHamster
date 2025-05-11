@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--  导入界面，提供自动和手动两种方式导入图片  -->
+<ContentPage
+    x:Class="PictureHamster.App.Views.ImportPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:fa="clr-namespace:UraniumUI.Icons.FontAwesome;assembly=UraniumUI.Icons.FontAwesome"
+    xmlns:models="clr-namespace:PictureHamster.Share.Models;assembly=PictureHamster.Share"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+    xmlns:viewModel="clr-namespace:PictureHamster.App.ViewModels"
+    Title="导入"
+    x:DataType="viewModel:ImportPageViewModel">
+
+    <Grid Padding="10" RowDefinitions="Auto, *, Auto">
+        <!--  顶部标题栏, 根据是否选中文件夹展示不同的内容  -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto">
+            <ImageButton
+                Grid.Column="0"
+                BackgroundColor="Transparent"
+                Command="{Binding DisplayInfoCommand}">
+                <ImageButton.Source>
+                    <FontImageSource
+                        FontFamily="FASolid"
+                        Glyph="circle-info"
+                        Color="{StaticResource Primary}" />
+                </ImageButton.Source>
+            </ImageButton>
+            <Label
+                Grid.Column="1"
+                FontSize="18"
+                HorizontalOptions="Center"
+                Text="{Binding TopBarTitle}"
+                VerticalOptions="Center" />
+            <Button
+                Grid.Column="2"
+                Command="{Binding TopBarButtonCommand}"
+                Text="{Binding TopBarButtonText}" />
+        </Grid>
+
+        <!--  中间主体, 显示文件夹或文件夹内的图片  -->
+        <ScrollView Grid.Row="1">
+            <Grid>
+                <!--  未导入过图片时，显示提示文本  -->
+                <StackLayout
+                    x:Name="BlankState"
+                    HorizontalOptions="Center"
+                    IsVisible="{Binding IsShowEmptyTip}"
+                    VerticalOptions="Center">
+
+                    <Label Text="请导入图片" />
+                </StackLayout>
+
+                <!--  导入过图片，未选中文件夹时，显示图片文件夹  -->
+                <StackLayout x:Name="NineGridState" IsVisible="{Binding IsShowDirectories}">
+                    <CollectionView
+                        ItemsSource="{Binding DirectoryItemsPageCollection.CurrentPageItems}"
+                        SelectedItem="{Binding SelectedDirectoryItem}"
+                        SelectionMode="Single">
+                        <CollectionView.ItemsLayout>
+                            <GridItemsLayout
+                                HorizontalItemSpacing="8"
+                                Orientation="Vertical"
+                                Span="{OnPlatform 5,
+                                                  WinUI=8,
+                                                  Android=3}"
+                                VerticalItemSpacing="8" />
+                        </CollectionView.ItemsLayout>
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:DirectoryItem">
+                                <Grid>
+                                    <Image
+                                        Aspect="AspectFill"
+                                        HeightRequest="160"
+                                        Source="{Binding LatestPicture.Path}"
+                                        WidthRequest="160" />
+                                    <Label
+                                        Padding="2"
+                                        BackgroundColor="Black"
+                                        HorizontalOptions="End"
+                                        Text="{Binding ImageCountText}"
+                                        TextColor="White"
+                                        VerticalOptions="End" />
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </StackLayout>
+
+                <!--  导入过图片，选中文件夹时，显示文件夹里的图片  -->
+                <StackLayout x:Name="ImageState" IsVisible="{Binding IsShowImages}">
+                    <Image
+                        Aspect="AspectFill"
+                        Source="{Binding ImageItemsPageCollection.FirstPageItem.Path}"
+                        VerticalOptions="Center" />
+                </StackLayout>
+            </Grid>
+        </ScrollView>
+
+        <!--  下方操作菜单  -->
+        <Grid
+            Grid.Row="2"
+            RowDefinitions="*,*,*"
+            RowSpacing="4">
+            <!--  图片/文件夹切换按钮  -->
+            <Grid Grid.Row="0" Margin="0,5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Button
+                    Grid.Column="0"
+                    Command="{Binding PreviousCommand}"
+                    Text="←" />
+                <Button
+                    Grid.Column="2"
+                    Command="{Binding NextCommand}"
+                    Text="→" />
+            </Grid>
+            <!--  导入按钮  -->
+            <Grid Grid.Row="1" ColumnDefinitions="Auto,Auto,*,Auto">
+                <CheckBox Grid.Column="0" IsChecked="{Binding IsImportAllImageInDirectory}" />
+                <Label
+                    Grid.Column="1"
+                    Text="是否一并导入所在文件夹的所有图片"
+                    VerticalOptions="Center" />
+                <Label Grid.Column="2" />
+                <Button
+                    Grid.Column="3"
+                    Command="{Binding ImportImagesCommand}"
+                    Text="导入图片" />
+            </Grid>
+            <Button
+                Grid.Row="2"
+                Command="{Binding AutoImportImagesCommand}"
+                Text="自动更新导入现有文件夹的图片" />
+        </Grid>
+    </Grid>
+</ContentPage>
