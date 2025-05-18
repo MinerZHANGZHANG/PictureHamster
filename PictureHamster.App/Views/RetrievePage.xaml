@@ -51,7 +51,7 @@
             </CollectionView.ItemsLayout>
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:ImageItem">
-                    <Border Padding="10" Shadow="True">
+                    <Border Padding="10">
                         <StackLayout Spacing="5">
                             <Image
                                 Aspect="AspectFill"

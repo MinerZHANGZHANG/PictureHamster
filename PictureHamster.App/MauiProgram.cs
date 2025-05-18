@@ -37,7 +37,7 @@ public static class MauiProgram
         builder.Services.AddCommunityToolkitDialogs();
         builder.Services.AddSingleton<IDialogService, DefaultDialogService>();
         LiteDBHelper.InitMapper();
-        builder.Services.AddSingleton<ILiteDatabase>(new LiteDatabase(Path.Combine(FileSystem.Current.AppDataDirectory, "pictureHamster.db")));
+        builder.Services.AddSingleton<ILiteDatabase>(new LiteDatabase(Path.Combine(FileSystem.AppDataDirectory, "pictureHamster.db")));
         builder.Services.AddSingleton<ImageStorageService>();
         builder.Services.AddSingleton<PreferencesService>();
         builder.Services.Configure<AutoFormViewOptions>(options =>
@@ -54,7 +54,14 @@ public static class MauiProgram
         });
 
         builder.Services.AddViewModels();
-
+        AppDomain.CurrentDomain.UnhandledException += (_, args) =>
+        {
+            File.AppendAllText(Path.Combine(FileSystem.CacheDirectory, "log.txt"), $"{DateTime.Now}: {args.ExceptionObject}");
+#if DEBUG
+            var debug = File.ReadAllText(Path.Combine(FileSystem.CacheDirectory, "log.txt"));
+#endif
+        };
+        
         return builder.Build();
     }
 }

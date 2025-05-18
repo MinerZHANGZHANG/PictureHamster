@@ -42,7 +42,7 @@
             SelectionMode="None">
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:CategoryItem">
-                    <Border Margin="0,0,0,10" Shadow="True">
+                    <Border Margin="0,0,0,10">
                         <Grid ColumnSpacing="10">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />

@@ -67,7 +67,7 @@
                     </CollectionView.ItemsLayout>
                     <CollectionView.ItemTemplate>
                         <DataTemplate x:DataType="models:ImageItem">
-                            <Border Margin="5" Shadow="False">
+                            <Border Margin="5">
                                 <Image Aspect="AspectFill" Source="{Binding Path}">
                                     <!--<Image.GestureRecognizers>
                                         <TapGestureRecognizer Command="{Binding BindingContext.SelectPictureCommand, Source={x:Reference Name=Page}}" CommandParameter="{Binding .}" />
