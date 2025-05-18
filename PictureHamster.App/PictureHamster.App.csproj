@@ -122,6 +122,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <MauiXaml Update="Controls\TagListView.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Dictionaries\Converts.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>

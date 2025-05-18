@@ -342,7 +342,7 @@ public partial class ClassifyPageViewModel(ImageStorageService imageStorageServi
                 imageItem.ClassifiedTime = DateTime.Now;
 
                 // 更新图片分类结果
-                imageStorageService.UpdateImageClassResult(oldCategories, imageItem);
+                imageStorageService.UpdateImageCategories(oldCategories, imageItem);
             }
             catch (Exception ex)
             {

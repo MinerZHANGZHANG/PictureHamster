@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView
+    x:Class="PictureHamster.App.Controls.TagListView"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Name="Root">
+    <FlexLayout
+        Margin="0"
+        AlignItems="Center"
+        BindableLayout.ItemsSource="{Binding Source={x:Reference Root}, Path=ItemsSource}"
+        Direction="Row"
+        JustifyContent="Start"
+        Wrap="Wrap">
+        <BindableLayout.ItemTemplate>
+            <DataTemplate>
+                <Button
+                    Margin="2"
+                    Padding="8,2"
+                    BackgroundColor="#EEE"
+                    Command="{Binding Source={x:Reference Root}, Path=RemoveCommand}"
+                    CommandParameter="{Binding .}"
+                    CornerRadius="16"
+                    HeightRequest="32"
+                    MinimumWidthRequest="60"
+                    Text="{Binding .}" />
+            </DataTemplate>
+        </BindableLayout.ItemTemplate>
+    </FlexLayout>
+</ContentView>

@@ -4,21 +4,15 @@
     x:Class="PictureHamster.App.Views.CategoryDetailsPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:PictureHamster.App.Controls"
     xmlns:fa="clr-namespace:UraniumUI.Icons.FontAwesome;assembly=UraniumUI.Icons.FontAwesome"
     xmlns:local="clr-namespace:PictureHamster.App.Views"
     xmlns:models="clr-namespace:PictureHamster.Share.Models;assembly=PictureHamster.Share"
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
     xmlns:viewModel="clr-namespace:PictureHamster.App.ViewModels"
-    Title="CategoryContentPage"
+    Title="{Binding PageTitle}"
     x:DataType="viewModel:CategoryDetailsPageViewModel">
-    <ContentPage.Resources>
-        <ResourceDictionary>
-            <Style x:Key="SectionMargin" TargetType="View">
-                <Setter Property="Margin" Value="10" />
-            </Style>
-        </ResourceDictionary>
-    </ContentPage.Resources>
     <Grid Padding="10" RowSpacing="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -28,95 +22,112 @@
         <!--  Top Header  -->
         <Grid Grid.Row="0">
             <!--  Unselected State Header  -->
-            <ContentView x:Name="UnselectedHeader" IsVisible="{Binding HasImageSelected, Converter={StaticResource InvertedBoolConverter}}">
+            <ContentView IsVisible="{Binding IsShowImages}">
                 <Grid ColumnDefinitions="Auto,*,Auto">
-                    <Button
-                        Command="{Binding DisplayInfoCommand}"
-                        Style="{StaticResource SectionMargin}"
-                        Text="信息" />
+                    <Button Command="{Binding DisplayInfoCommand}" Text="信息" />
                     <Label
+                        Grid.Column="1"
                         HorizontalOptions="Center"
-                        Text="{Binding TopBarTitle}"
+                        Text="{Binding PageTitle}"
                         VerticalOptions="Center" />
                     <Button
+                        Grid.Column="2"
                         Command="{Binding RefreshStateCommand}"
-                        Style="{StaticResource SectionMargin}"
                         Text="刷新" />
                 </Grid>
             </ContentView>
             <!--  Selected State Header  -->
-            <ContentView x:Name="SelectedHeader" IsVisible="{Binding HasImageSelected}">
+            <ContentView IsVisible="{Binding IsShowSingleImage}">
                 <Grid ColumnDefinitions="Auto,*,Auto">
-                    <Button
-                        Command="{Binding DisplayInfoCommand}"
-                        Style="{StaticResource SectionMargin}"
-                        Text="信息" />
+                    <Button Command="{Binding DisplayInfoCommand}" Text="信息" />
                     <Label
+                        Grid.Column="1"
                         HorizontalOptions="Center"
-                        Text="{Binding TopBarTitle}"
+                        Text="{Binding SmallImageItemsPageCollection.FirstPageItem.Name}"
                         VerticalOptions="Center" />
                     <Button
+                        Grid.Column="2"
                         Command="{Binding ReturnToUnselectedStateCommand}"
-                        Style="{StaticResource SectionMargin}"
                         Text="返回" />
                 </Grid>
             </ContentView>
         </Grid>
+
         <!--  Middle: Picture Grid  -->
-        <CollectionView
-            Grid.Row="1"
-            ItemsSource="{Binding ImageItems}"
-            SelectedItem="{Binding SelectedImageItem}"
-            SelectionChanged="OnPictureSelected"
-            SelectionMode="Single">
-            <CollectionView.ItemsLayout>
-                <GridItemsLayout Orientation="Vertical" Span="4" />
-            </CollectionView.ItemsLayout>
-            <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="models:ImageItem">
-                    <Border Margin="5" Shadow="False">
-                        <Image Aspect="AspectFill" Source="{Binding Path}">
-                            <Image.GestureRecognizers>
-                                <TapGestureRecognizer Command="{Binding BindingContext.SelectPictureCommand, Source={x:Reference Name=Page}}" CommandParameter="{Binding .}" />
-                            </Image.GestureRecognizers>
-                        </Image>
-                    </Border>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
+        <ScrollView Grid.Row="1">
+            <Grid>
+                <CollectionView
+                    IsVisible="{Binding IsShowImages}"
+                    ItemsSource="{Binding ImageItemsPageCollection.CurrentPageItems}"
+                    SelectedItem="{Binding SelectedImageItem}"
+                    SelectionChanged="OnPictureSelected"
+                    SelectionMode="Single">
+                    <CollectionView.ItemsLayout>
+                        <GridItemsLayout Orientation="Vertical" Span="{OnPlatform 5, WinUI=8, Android=3}" />
+                    </CollectionView.ItemsLayout>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:ImageItem">
+                            <Border Margin="5" Shadow="False">
+                                <Image Aspect="AspectFill" Source="{Binding Path}">
+                                    <!--<Image.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding BindingContext.SelectPictureCommand, Source={x:Reference Name=Page}}" CommandParameter="{Binding .}" />
+                                    </Image.GestureRecognizers>-->
+                                </Image>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+                <StackLayout
+                    x:Name="ImageState"
+                    Grid.Row="1"
+                    IsVisible="{Binding IsShowSingleImage}">
+                    <Image
+                        Aspect="AspectFill"
+                        Source="{Binding SmallImageItemsPageCollection.FirstPageItem.Path}"
+                        VerticalOptions="Center" />
+                </StackLayout>
+                <StackLayout
+                    x:Name="BlankState"
+                    HorizontalOptions="Center"
+                    IsVisible="{Binding IsShowEmptyTip}"
+                    VerticalOptions="Center">
+
+                    <Label Text="这个类别没有图片" />
+                </StackLayout>
+            </Grid>
+        </ScrollView>
+
         <!--  Bottom: Operation Bar  -->
         <Grid Grid.Row="2">
             <!--  Unselected State Footer  -->
-            <ContentView x:Name="UnselectedFooter" IsVisible="{Binding HasImageSelected, Converter={StaticResource InverseBooleanConverter}}">
+            <ContentView x:Name="UnselectedFooter" IsVisible="{Binding IsShowImages}">
                 <StackLayout Spacing="10">
-                    <Label Text="{Binding ImageItems.Count}" />
+                    <uranium:GridLayout ColumnCount="2" HorizontalOptions="Center">
+                        <Button Command="{Binding PreviousCommand}" Text="Prev" />
+                        <Button Command="{Binding NextCommand}" Text="Next" />
+                    </uranium:GridLayout>
                     <Button Command="{Binding ExportImagesCommand}" Text="导出" />
                     <Button Command="{Binding ViewExportedDirectoryCommand}" Text="查看导出文件" />
                 </StackLayout>
             </ContentView>
             <!--  Selected State Footer  -->
-            <ContentView x:Name="SelectedFooter" IsVisible="{Binding HasImageSelected}">
+            <ContentView x:Name="SelectedFooter" IsVisible="{Binding IsShowSingleImage}">
                 <StackLayout Spacing="10">
-                    <!--  Dropdown for Category  -->
-                    <uranium:GridLayout
-                        ColumnCount="2"
-                        ColumnSpacing="4"
-                        RowCount="1">
-                        <Label Text="{Binding CategoryNameText}" />
-                        <Button Command="{Binding UpdateImageCategoryCommand}" Text="修改类别" />
+                    <uranium:GridLayout ColumnCount="2" HorizontalOptions="Center">
+                        <Button Command="{Binding PreviousCommand}" Text="Prev" />
+                        <Button Command="{Binding NextCommand}" Text="Next" />
                     </uranium:GridLayout>
-                    <!--  Tags panel  -->
-                    <FlexLayout JustifyContent="Start" Wrap="Wrap">
-                        <!--  Example tag; assume Tags is a collection for a full implementation  -->
-                        <StackLayout Margin="2" Padding="5">
-                            <Button
-                                Command="{Binding RemoveImageKeywordCommand}"
-                                HeightRequest="20"
-                                Text="标签A"
-                                WidthRequest="20" />
-                        </StackLayout>
-                    </FlexLayout>
+                    <!--  Dropdown for Category  -->
+                    <controls:TagListView ItemsSource="{Binding ImageCategories}" RemoveCommand="{Binding RemoveImageCategoryCommand}" />
+                    <Grid ColumnDefinitions="*, Auto">
+                        <Entry Placeholder="类别" Text="{Binding CategoryInputText}" />
+                        <Button
+                            Grid.Column="1"
+                            Command="{Binding AddImageCategoriesCommand}"
+                            Text="添加类别" />
+                    </Grid>
                     <!--  Dropdown with Text Input and "添加关键信息" Button  -->
+                    <controls:TagListView ItemsSource="{Binding ImageKeywords}" RemoveCommand="{Binding RemoveImageKeywordCommand}" />
                     <Grid ColumnDefinitions="*, Auto">
                         <Entry Placeholder="关键信息" Text="{Binding KeywordInputText}" />
                         <Button
@@ -128,7 +139,7 @@
                     <Editor
                         AutoSize="TextChanges"
                         Placeholder="详细描述"
-                        Text="{Binding ImageDescriptionText}" />
+                        Text="{Binding DescriptionText}" />
                     <Button Command="{Binding UpdateImageDescriptionCommand}" Text="更新图片描述" />
                 </StackLayout>
             </ContentView>

@@ -1,4 +1,5 @@
 ﻿using LiteDB;
+using PictureHamster.Share.Enums;
 using PictureHamster.Share.Models;
 
 namespace PictureHamster.App.Services;
@@ -21,7 +22,6 @@ public class ImageStorageService
     public List<CategoryItem> CategoryItems { get; init; }
 
     public Dictionary<string, CategoryItem> CategoryNameDict { get; init; }
-
 
     /// <summary>
     /// 支持的图片后缀名
@@ -146,19 +146,77 @@ public class ImageStorageService
         return true;
     }
 
-    public bool UpdateImageClassResult(IEnumerable<string> oldCategories, ImageItem imageItem)
+    public bool UpdateImageKeywords(ImageItem oldImageItem,IEnumerable<string> newKeyWords, bool isUserOperation = false)
     {
+        oldImageItem.CategorySource = isUserOperation ? CategorySource.User : CategorySource.AI;
+        oldImageItem.KeyWords = [.. newKeyWords];
+        Database.GetCollection<ImageItem>().Update(oldImageItem);
+        return true;
+    }
+
+    public bool UpdateImageDescription(ImageItem oldImageItem, string newDescription, bool isUserOperation = false)
+    {
+        oldImageItem.CategorySource = isUserOperation ? CategorySource.User : CategorySource.AI;
+        oldImageItem.Description = newDescription;
+        Database.GetCollection<ImageItem>().Update(oldImageItem);
+        return true;
+    }
+
+    public bool UpdateImageCategories(ImageItem oldImageItem, IEnumerable<string> newCategories,bool isUserOperation=false)
+    {
+        oldImageItem.CategorySource = isUserOperation ? CategorySource.User : CategorySource.AI;
+
+        // 移除旧的分类中的图片
+        foreach (var oldCategory in oldImageItem.Categories)
+        {
+            if (CategoryNameDict.TryGetValue(oldCategory, out var categoryItem))
+            {
+                categoryItem.ImageItems.Remove(oldImageItem);
+            }
+        }
+        // 添加图片到分类
+        oldImageItem.Categories = [.. newCategories];
+        foreach (var categoryName in newCategories)
+        {
+            if (string.IsNullOrEmpty(categoryName))
+            {
+                continue;
+            }
+            // 如果分类已经存在，则添加图片到分类
+            if (CategoryNameDict.TryGetValue(categoryName, out var categoryItem))
+            {
+                categoryItem.ImageItems.Add(oldImageItem);
+            }
+            else
+            {
+                categoryItem = new CategoryItem
+                {
+                    Name = categoryName,
+                    ImageItems = [oldImageItem]
+                };
+                CategoryItems.Add(categoryItem);
+                CategoryNameDict.Add(categoryName, categoryItem);
+            }
+        }
+        Database.GetCollection<ImageItem>().Update(oldImageItem);
+        return true;
+    }
+
+    public bool UpdateImageCategories(IEnumerable<string> oldCategories, ImageItem newImageItem, bool isUserOperation = false)
+    {
+        newImageItem.CategorySource = isUserOperation ? CategorySource.User : CategorySource.AI;
+
         // 移除旧的分类中的图片
         foreach (var oldCategory in oldCategories)
         {
             if (CategoryNameDict.TryGetValue(oldCategory, out var categoryItem))
             {
-                categoryItem.ImageItems.Remove(imageItem);
+                categoryItem.ImageItems.Remove(newImageItem);
             }
         }
 
         // 添加图片到分类
-        foreach (var categoryName in imageItem.Categories)
+        foreach (var categoryName in newImageItem.Categories)
         {
             if (string.IsNullOrEmpty(categoryName))
             {
@@ -168,23 +226,32 @@ public class ImageStorageService
             // 如果分类已经存在，则添加图片到分类
             if (CategoryNameDict.TryGetValue(categoryName, out var categoryItem))
             {
-                categoryItem.ImageItems.Add(imageItem);
+                categoryItem.ImageItems.Add(newImageItem);
             }
             else
             {
                 categoryItem = new CategoryItem
                 {
                     Name = categoryName,
-                    ImageItems = [imageItem]
+                    ImageItems = [newImageItem]
                 };
                 CategoryItems.Add(categoryItem);
                 CategoryNameDict.Add(categoryName, categoryItem);
             }
         }
 
-        Database.GetCollection<ImageItem>().Update(imageItem);
+        Database.GetCollection<ImageItem>().Update(newImageItem);
 
         return true;
     }
 
+
+    public IEnumerable<ImageItem> GetImageItemsByCategory(string categoryName)
+    {
+        if (string.IsNullOrEmpty(categoryName) || !CategoryNameDict.TryGetValue(categoryName, out var categoryItem))
+        {
+            return [];
+        }
+        return categoryItem.ImageItems;
+    }
 }

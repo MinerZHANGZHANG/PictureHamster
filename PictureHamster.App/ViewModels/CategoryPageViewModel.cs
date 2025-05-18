@@ -9,6 +9,7 @@ namespace PictureHamster.App.ViewModels;
 
 public partial class CategoryPageViewModel(ImageStorageService imageStorageService) : ObservableObject, IViewModel
 {
+
     /// <summary>
     /// 搜索框文本
     /// </summary>

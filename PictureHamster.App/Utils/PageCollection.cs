@@ -15,6 +15,7 @@ public class PageCollection<T> : ObservableObject, IEnumerable<T>
     public int PageSize { get; set; } = 1;
 
     public int PageCount => AllItems.Count() / PageSize + (AllItems.Count() % PageSize > 0 ? 1 : 0);
+    public int TotalCount => AllItems.Count();
 
     public IEnumerable<T> CurrentPageItems => AllItems
         .Skip(PageIndex * PageSize)
@@ -57,6 +58,17 @@ public class PageCollection<T> : ObservableObject, IEnumerable<T>
         if (PageIndex > 0)
         {
             PageIndex--;
+            OnPropertyChanged(nameof(CurrentPageItems));
+            OnPropertyChanged(nameof(FirstPageItem));
+        }
+    }
+
+    public void SetPageIndexByItem(T item)
+    {
+        var index = AllItems.ToList().IndexOf(item);
+        if (index >= 0)
+        {
+            PageIndex = index / PageSize;
             OnPropertyChanged(nameof(CurrentPageItems));
             OnPropertyChanged(nameof(FirstPageItem));
         }
