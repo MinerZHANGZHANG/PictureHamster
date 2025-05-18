@@ -8,7 +8,7 @@
 - 分类-Windows
 ![分类界面-Windows](img/ClassifyPage-Windows.png)
 
-- 查找-Android
+- 查找-Android    
 ![查找界面-Android](img/RetrievePage-Android.png)
 
 ## 待完成的内容     
