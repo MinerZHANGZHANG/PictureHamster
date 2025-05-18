@@ -4,11 +4,9 @@ using UraniumUI;
 using UraniumUI.Dialogs;
 using LiteDB;
 using PictureHamster.App.ViewModels;
-using PictureHamster.App.Views;
 using PictureHamster.App.Utils;
 using PictureHamster.App.Services;
 using UraniumUI.Options;
-using Microsoft.UI.Xaml.Controls;
 
 namespace PictureHamster.App;
 
@@ -26,7 +24,7 @@ public static class MauiProgram
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
-                fonts.AddFontAwesomeIconFonts(); 
+                fonts.AddFontAwesomeIconFonts();
             })
             .ConfigureEssentials(essentials =>
             {
@@ -37,9 +35,9 @@ public static class MauiProgram
         builder.Logging.AddDebug();
 #endif
         builder.Services.AddCommunityToolkitDialogs();
-        builder.Services.AddSingleton<IDialogService,DefaultDialogService>();
+        builder.Services.AddSingleton<IDialogService, DefaultDialogService>();
         LiteDBHelper.InitMapper();
-        builder.Services.AddSingleton<ILiteDatabase>(new LiteDatabase(@"litedb.db"));
+        builder.Services.AddSingleton<ILiteDatabase>(new LiteDatabase(Path.Combine(FileSystem.Current.AppDataDirectory, "pictureHamster.db")));
         builder.Services.AddSingleton<ImageStorageService>();
         builder.Services.AddSingleton<PreferencesService>();
         builder.Services.Configure<AutoFormViewOptions>(options =>

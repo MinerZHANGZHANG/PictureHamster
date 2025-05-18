@@ -253,6 +253,7 @@ public partial class ClassifyPageViewModel(ImageStorageService imageStorageServi
 
         int maxPixelCount = 1800000;
         int maxContextSize = 30000;
+        ClassifyProgress = 0; 
 
         // 调用AI服务进行分类
         foreach (var imageItem in selectedImages)
@@ -343,6 +344,7 @@ public partial class ClassifyPageViewModel(ImageStorageService imageStorageServi
 
                 // 更新图片分类结果
                 imageStorageService.UpdateImageCategories(oldCategories, imageItem);
+                ClassifyProgress += 1f / selectedImages.Count();
             }
             catch (Exception ex)
             {
