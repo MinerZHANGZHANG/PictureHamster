@@ -65,10 +65,21 @@
                             <Label
                                 FontSize="Small"
                                 LineBreakMode="TailTruncation"
-                                Text="{Binding KeyWords}"
+                                Text="{Binding CategoriesText}"
                                 TextColor="Gray" />
-                            <Button Command="{Binding Source={RelativeSource AncestorType={x:Type viewModel:RetrievePageViewModel}}, Path=LookupImageCommand}" Text="放大" />
-                            <Button Command="{Binding Source={RelativeSource AncestorType={x:Type viewModel:RetrievePageViewModel}}, Path=ShareImageCommand}" Text="分享" />
+                            <Label
+                                FontSize="Small"
+                                LineBreakMode="TailTruncation"
+                                Text="{Binding KeyWordsText}"
+                                TextColor="Gray" />
+                            <Button
+                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewModel:RetrievePageViewModel}}, Path=LookupImageCommand}"
+                                CommandParameter="{Binding Path}"
+                                Text="放大" />
+                            <Button
+                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewModel:RetrievePageViewModel}}, Path=ShareImageCommand}"
+                                CommandParameter="{Binding Path}"
+                                Text="分享" />
                         </StackLayout>
                     </Border>
                 </DataTemplate>

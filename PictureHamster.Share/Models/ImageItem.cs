@@ -18,11 +18,13 @@ public class ImageItem
     /// 图片的分类，可能有多个，按照可能性从大到小排序
     /// </summary>
     public List<string> Categories { get; set; } = [];
+    public string CategoriesText => string.Join(",", Categories);
 
     /// <summary>
     /// 图片的关键信息
     /// </summary>
     public List<string> KeyWords { get; set; } = [];
+    public string KeyWordsText => string.Join(",", KeyWords);
 
     /// <summary>
     /// 图片内容描述

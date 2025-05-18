@@ -53,19 +53,19 @@ public class ImageStorageService
         CategoryItems = [];
         foreach (var imageItem in ImageItems)
         {
-            if(imageItem.Categories.Count == 0)
+            if (imageItem.Categories.Count == 0)
             {
                 continue;
             }
 
             foreach (var categoryName in imageItem.Categories)
             {
-                if(string.IsNullOrEmpty(categoryName))
+                if (string.IsNullOrEmpty(categoryName))
                 {
                     continue;
                 }
 
-                if(CategoryNameDict.TryGetValue(categoryName, out var categoryItem))
+                if (CategoryNameDict.TryGetValue(categoryName, out var categoryItem))
                 {
                     categoryItem.ImageItems.Add(imageItem);
                 }
@@ -146,7 +146,7 @@ public class ImageStorageService
         return true;
     }
 
-    public bool UpdateImageKeywords(ImageItem oldImageItem,IEnumerable<string> newKeyWords, bool isUserOperation = false)
+    public bool UpdateImageKeywords(ImageItem oldImageItem, IEnumerable<string> newKeyWords, bool isUserOperation = false)
     {
         oldImageItem.CategorySource = isUserOperation ? CategorySource.User : CategorySource.AI;
         oldImageItem.KeyWords = [.. newKeyWords];
@@ -162,7 +162,7 @@ public class ImageStorageService
         return true;
     }
 
-    public bool UpdateImageCategories(ImageItem oldImageItem, IEnumerable<string> newCategories,bool isUserOperation=false)
+    public bool UpdateImageCategories(ImageItem oldImageItem, IEnumerable<string> newCategories, bool isUserOperation = false)
     {
         oldImageItem.CategorySource = isUserOperation ? CategorySource.User : CategorySource.AI;
 
@@ -243,6 +243,22 @@ public class ImageStorageService
         Database.GetCollection<ImageItem>().Update(newImageItem);
 
         return true;
+    }
+
+    public IEnumerable<ImageItem> FindImageItems(string queryText)
+    {
+        if(string.IsNullOrEmpty(queryText))
+        {
+            return [];
+        }
+        queryText = queryText.Trim();
+        var result= Database.GetCollection<ImageItem>().Find(i =>
+            i.Categories.Any(c => c.Contains(queryText))
+            || i.KeyWords.Any(k => k.Contains(queryText))
+            || i.Description.Contains(queryText))
+            ;
+
+        return result;
     }
 
 

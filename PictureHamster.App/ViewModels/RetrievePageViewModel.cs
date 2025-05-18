@@ -1,11 +1,14 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using PictureHamster.App.Services;
 using PictureHamster.Share.Models;
 using System.Collections.ObjectModel;
+using Microsoft.Maui.ApplicationModel.DataTransfer;
+using UraniumUI.Dialogs;
 
 namespace PictureHamster.App.ViewModels;
 
-partial class RetrievePageViewModel : ObservableObject, IViewModel
+public partial class RetrievePageViewModel(ImageStorageService imageStorageService, IDialogService dialogService) : ObservableObject, IViewModel
 {
     /// <summary>
     /// 查询文本
@@ -27,13 +30,22 @@ partial class RetrievePageViewModel : ObservableObject, IViewModel
     }
     private ObservableCollection<ImageItem> _searchResults = [];
 
+    public void Init()
+    {
+
+    }
+
     /// <summary>
     /// 搜索符合条件的图片
     /// </summary>
     [RelayCommand]
     public void SearchImages()
     {
-
+        if (string.IsNullOrEmpty(SearchText))
+        {
+            return;
+        }
+        SearchResults = [.. imageStorageService.FindImageItems(_searchText)];
     }
 
     /// <summary>
@@ -41,9 +53,25 @@ partial class RetrievePageViewModel : ObservableObject, IViewModel
     /// </summary>
     /// <param name="path">图片地址</param>
     [RelayCommand]
-    public void LookupImage(string path)
+    public async Task LookupImage(string path)
     {
+        if(string.IsNullOrEmpty(path))
+        {
+            return;
+        }
 
+        var view = new ScrollView
+        {
+            Content = new Image
+            {
+                Source = ImageSource.FromFile(path),
+                Aspect = Aspect.AspectFit,
+                VerticalOptions = LayoutOptions.Center,
+                HorizontalOptions = LayoutOptions.Center
+            }
+        };
+
+        await dialogService.DisplayViewAsync("查看大图", view);
     }
 
     /// <summary>
@@ -51,8 +79,17 @@ partial class RetrievePageViewModel : ObservableObject, IViewModel
     /// </summary>
     /// <param name="path">图片地址</param>
     [RelayCommand]
-    public void ShareImage(string path)
+    public async Task ShareImage(string path)
     {
+        if (string.IsNullOrEmpty(path))
+        {
+            return;
+        }
 
+        await Microsoft.Maui.ApplicationModel.DataTransfer.Share.Default.RequestAsync(new ShareFileRequest
+        {
+            Title = "分享图片",
+            File = new ShareFile(path)
+        });
     }
 }
