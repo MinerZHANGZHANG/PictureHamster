@@ -9,7 +9,7 @@
 ![分类界面-Windows](img/ClassifyPage-Windows.png)
 
 - 查找-Android
-![查找界面-Android](img/RetrievePage.png)
+![查找界面-Android](img/RetrievePage-Android.png)
 
 ## 待完成的内容     
 - [x] 支持导入单个或整个文件夹的图片，自动导入已保存文件夹的新图片。
