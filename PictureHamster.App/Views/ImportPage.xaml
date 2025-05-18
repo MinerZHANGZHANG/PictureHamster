@@ -134,7 +134,7 @@
             <Button
                 Grid.Row="2"
                 Command="{Binding AutoImportImagesCommand}"
-                Text="自动更新导入现有文件夹的图片" />
+                Text="自动导入图片" />
         </Grid>
     </Grid>
 </ContentPage>

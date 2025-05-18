@@ -3,6 +3,9 @@
     "Windows Machine": {
       "commandName": "Project",
       "nativeDebugging": false
+    },
+    "配置文件 1": {
+      "commandName": "Executable"
     }
   }
 }

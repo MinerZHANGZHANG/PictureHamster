@@ -236,6 +236,10 @@ public partial class ImportPageViewModel(IDialogService dialogService, ImageStor
             return;
         }
 
+        using (var stream = await photo.OpenReadAsync())
+        {
+           
+        }
         var directoryPath = Path.GetDirectoryName(photo.FullPath);
         if (string.IsNullOrEmpty(directoryPath))
         {
@@ -260,6 +264,7 @@ public partial class ImportPageViewModel(IDialogService dialogService, ImageStor
     [RelayCommand]
     public void AutoImportImages()
     {
+        // 自动导入已经导入过的地址
         List<string> imagePaths = [];
         foreach (var item in DirectoryItems)
         {
@@ -270,10 +275,33 @@ public partial class ImportPageViewModel(IDialogService dialogService, ImageStor
             }
         }
 
+        // TODO:对于android设备，自动导入屏幕截图和相册
+#if ANDROID
+        var cameraDir = "/storage/emulated/0/DCIM/Camera";
+        var screenshotsDir1 = "/storage/emulated/0/Pictures/Screenshots";
+        var screenshotsDir2 = "/storage/emulated/0/DCIM/Screenshots";
+
+        List<string> autoImportDirs = [cameraDir, screenshotsDir1, screenshotsDir2];
+
+        foreach (var dir in autoImportDirs)
+        {
+            if (Directory.Exists(dir))
+            {
+                var paths = ImageStorageService.LoadDirectoryImagePaths(dir);
+                if (paths.Any())
+                {
+                    imagePaths.AddRange(paths);
+                }
+            }
+        }
+#endif
+
         if (imagePaths.Count > 0)
         {
             SaveImportResult([.. imagePaths]);
         }
+
+        
     }
 
     #endregion
@@ -293,7 +321,7 @@ public partial class ImportPageViewModel(IDialogService dialogService, ImageStor
     /// </summary>
     private void LoadImages()
     {
-        DirectoryItems =imageStorageService.DirectoryItems;
+        DirectoryItems = imageStorageService.DirectoryItems;
     }
 
     /// <summary>
