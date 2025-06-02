@@ -11,27 +11,10 @@ public class PreferencesService
 {
     public AIServiceSetting AIServiceSetting { get; private set; }
 
-    private readonly bool _isSupportSecureStorage = true;
-
     public PreferencesService()
     {
         string aiServiceSettingJson = string.Empty;
-        try
-        {
-            aiServiceSettingJson = SecureStorage.Default.GetAsync(nameof(Share.Models.AIServiceSetting)).Result ?? string.Empty;
-        }
-        catch (Exception)
-        {
-            _isSupportSecureStorage = false;
-        }
-        finally
-        {
-            // SecureStorage 不支持时，使用 Preferences 进行存储
-            if (!_isSupportSecureStorage)
-            {
-                aiServiceSettingJson = Preferences.Default.Get(nameof(Share.Models.AIServiceSetting), string.Empty);
-            }
-        }
+        aiServiceSettingJson = Preferences.Default.Get(nameof(Share.Models.AIServiceSetting), string.Empty);
 
         if (string.IsNullOrEmpty(aiServiceSettingJson))
         {
@@ -43,17 +26,9 @@ public class PreferencesService
         }
     }
 
-    public async Task UpdateAISettings(AIServiceSetting aiServiceSetting)
+    public void UpdateAISettings(AIServiceSetting aiServiceSetting)
     {
         string aiServiceSettingJson = JsonSerializer.Serialize(aiServiceSetting);
-
-        if (_isSupportSecureStorage)
-        {
-            await SecureStorage.Default.SetAsync(nameof(Share.Models.AIServiceSetting), aiServiceSettingJson);
-        }
-        else
-        {
-            Preferences.Default.Set(nameof(Share.Models.AIServiceSetting), aiServiceSettingJson);
-        }
+        Preferences.Default.Set(nameof(Share.Models.AIServiceSetting), aiServiceSettingJson);
     }
 }
