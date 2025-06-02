@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PictureHamster.App.Services;
 using PictureHamster.App.Utils;
+using PictureHamster.App.Views;
 using PictureHamster.Share.Models;
 using UraniumUI.Dialogs;
 
@@ -423,6 +424,15 @@ public partial class CategoryDetailsPageViewModel(IDialogService dialogService, 
         }
 
         imageStorageService.UpdateImageDescription(SelectedImageItem, DescriptionText, true);
+    }
+
+    /// <summary>
+    /// 跳转选择类别界面
+    /// </summary>
+    [RelayCommand]
+    public async Task ToCategoryPage()
+    {
+        await Shell.Current.GoToAsync($"//{nameof(CategoryPage)}");
     }
 
     private void UpdateInputOnSelectedImage(ImageItem? imageItem)

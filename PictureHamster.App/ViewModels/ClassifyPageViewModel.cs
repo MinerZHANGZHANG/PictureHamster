@@ -171,7 +171,7 @@ public partial class ClassifyPageViewModel(ImageStorageService imageStorageServi
         PropertyChanged += ClassifyPageViewModel_PropertyChanged;
     }
 
-    private async void ClassifyPageViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    private void ClassifyPageViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(ApiServiceType)
             || e.PropertyName == nameof(ApiServiceUrl)
@@ -179,7 +179,7 @@ public partial class ClassifyPageViewModel(ImageStorageService imageStorageServi
             || e.PropertyName == nameof(ApiServiceKey))
         {
             // 更新AI服务设置
-            await preferencesService.UpdateAISettings(new()
+            preferencesService.UpdateAISettings(new()
             {
                 ApiKey = ApiServiceKey,
                 ApiType = ApiServiceType,

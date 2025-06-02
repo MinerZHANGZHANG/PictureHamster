@@ -92,7 +92,7 @@
                     IsVisible="{Binding IsShowEmptyTip}"
                     VerticalOptions="Center">
 
-                    <Label Text="这个类别没有图片" />
+                    <Button Command="{Binding ToCategoryPageCommand}" Text="前往选择一个类别查看详情" />
                 </StackLayout>
             </Grid>
         </ScrollView>
