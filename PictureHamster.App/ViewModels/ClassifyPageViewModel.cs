@@ -130,6 +130,11 @@ public partial class ClassifyPageViewModel(ImageStorageService imageStorageServi
     private bool _isClassifying = false;
 
     /// <summary>
+    /// 是否结束分类请求
+    /// </summary>
+    private bool _isRequestEndClassify = false;
+
+    /// <summary>
     /// 是否跳过已经分类的图片
     /// </summary>
     public bool IsSkipClassifiedImage
@@ -211,6 +216,8 @@ public partial class ClassifyPageViewModel(ImageStorageService imageStorageServi
             return;
         }
 
+        
+
         IKernelBuilder kernelBuilder = Kernel.CreateBuilder();
         PromptExecutionSettings promptExecutionSettings = new();
         ModelSetting modelSetting = CurrentModelSetting;
@@ -253,11 +260,21 @@ public partial class ClassifyPageViewModel(ImageStorageService imageStorageServi
 
         int maxPixelCount = 1800000;
         int maxContextSize = 30000;
-        ClassifyProgress = 0; 
+        ClassifyProgress = 0;
+
+        IsClassifying = true;
 
         // 调用AI服务进行分类
         foreach (var imageItem in selectedImages)
         {
+            // 允许终止分类操作
+            if (_isRequestEndClassify)
+            {
+                _isRequestEndClassify = false;
+                IsClassifying = false;
+                return;
+            }
+
             if (!File.Exists(imageItem.Path) || !Uri.TryCreate(imageItem.Path, UriKind.Absolute, out var imageUri))
             {
                 continue;
@@ -351,6 +368,17 @@ public partial class ClassifyPageViewModel(ImageStorageService imageStorageServi
                 continue;
             }
         }
+
+        IsClassifying = false;
+    }
+
+    /// <summary>
+    /// 结束分类请求
+    /// </summary>
+    [RelayCommand]
+    public void CancelClassify()
+    {
+        _isRequestEndClassify = true;
     }
 
     /// <summary>

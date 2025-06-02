@@ -158,11 +158,17 @@
                     VerticalOptions="Center" />
             </StackLayout>
 
-            <!--  Row 8: 开始分类按钮  -->
+            <!--  Row 8: 开始/取消分类按钮  -->
             <Button
                 Grid.Row="8"
                 Command="{Binding ClassifyImagesCommand}"
-                Text="开始进行分类" />
+                IsVisible="{Binding IsClassifying, Converter={StaticResource InvertedBoolConverter}}"
+                Text="开始分类" />
+            <Button
+                Grid.Row="8"
+                Command="{Binding CancelClassifyCommand}"
+                IsVisible="{Binding IsClassifying}"
+                Text="取消分类" />
 
             <!--  Row 9: 浏览分类结果  -->
             <Button
