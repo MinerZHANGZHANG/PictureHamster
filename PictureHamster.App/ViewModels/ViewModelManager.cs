@@ -8,7 +8,7 @@ internal static class ViewModelManager
 {
     public static IServiceCollection AddViewModels(this IServiceCollection services)
     {
-        // 这里可以使用反射来扫描程序集中的所有ViewModel类型并注册
+        // 扫描程序集中的所有ViewModel类型并注册
         var viewModelTypes = typeof(IViewModel).Assembly.GetTypes()
            .Where(type => typeof(IViewModel).IsAssignableFrom(type) && !type.IsAbstract);
 

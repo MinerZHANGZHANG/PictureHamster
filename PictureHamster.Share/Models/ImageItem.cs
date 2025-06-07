@@ -15,10 +15,16 @@ public class ImageItem
     public bool IsSelected { get; set; } = false;
 
     /// <summary>
-    /// 图片的分类，可能有多个，按照可能性从大到小排序
+    /// 图片的原始分类，可能有多个，按照可能性从大到小排序
     /// </summary>
     public List<string> Categories { get; set; } = [];
-    public string CategoriesText => string.Join(",", Categories);
+
+    /// <summary>
+    /// 图片的原始分类经过映射处理后的分类
+    /// </summary>
+    public List<string> MapppingCategories { get; set; } = [];
+
+    public string CategoriesText => string.Join(",", MapppingCategories);
 
     /// <summary>
     /// 图片的关键信息

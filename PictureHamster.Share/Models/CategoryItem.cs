@@ -23,5 +23,5 @@ public class CategoryItem
             DirectoryPath = string.Empty,
             ClassifiedTime = DateTime.MinValue,
         };
-
 }
+

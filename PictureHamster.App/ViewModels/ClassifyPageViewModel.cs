@@ -274,13 +274,13 @@ public partial class ClassifyPageViewModel(ImageStorageService imageStorageServi
 
         if (!selectedImages.Any())
         {
-            await dialogService.DisplayTextPromptAsync("没有选中的图片", "请先选择需要分类的图片。");
+            await dialogService.ConfirmAsync("没有选中的图片", "请先选择需要分类的图片。");
             return;
         }
 
         if (!Uri.TryCreate(ApiServiceUrl, UriKind.Absolute, out var apiServiceUri))
         {
-            await dialogService.DisplayTextPromptAsync("不正确的分类服务地址", $"AI对话接口地址[{ApiServiceUrl}]不是一个有效的Url，请检查配置");
+            await dialogService.ConfirmAsync("不正确的分类服务地址", $"AI对话接口地址[{ApiServiceUrl}]不是一个有效的Url，请检查配置");
             return;
         }
 
@@ -288,7 +288,7 @@ public partial class ClassifyPageViewModel(ImageStorageService imageStorageServi
             || kernel == null 
             || promptExecutionSettings == null)
         {
-            await dialogService.DisplayTextPromptAsync("无法创建语义内核", errorMessage);
+            await dialogService.ConfirmAsync("无法创建语义内核", errorMessage);
             return;
         }
 
@@ -304,7 +304,7 @@ public partial class ClassifyPageViewModel(ImageStorageService imageStorageServi
             {
                 _isRequestEndClassify = false;
                 IsClassifying = false;
-                await dialogService.DisplayTextPromptAsync("操作已取消", "您已取消了分类操作。");
+                await dialogService.ConfirmAsync("操作已取消", "您已取消了分类操作。");
                 return;
             }
 

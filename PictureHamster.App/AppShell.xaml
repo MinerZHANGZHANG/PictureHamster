@@ -75,4 +75,15 @@
                 Color="{StaticResource Secondary}" />
         </ShellContent.Icon>
     </ShellContent>
+    <ShellContent
+        Title="应用设置"
+        ContentTemplate="{DataTemplate views:SettingPage}"
+        Route="SettingPage">
+        <ShellContent.Icon>
+            <FontImageSource
+                FontFamily="FASolid"
+                Glyph="Gear"
+                Color="{StaticResource Secondary}" />
+        </ShellContent.Icon>
+    </ShellContent>
 </Shell>

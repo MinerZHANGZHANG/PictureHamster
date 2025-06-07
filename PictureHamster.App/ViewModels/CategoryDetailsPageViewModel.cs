@@ -332,7 +332,7 @@ public partial class CategoryDetailsPageViewModel(IDialogService dialogService, 
 
         if (ImageCategories.Count == 1)
         {
-            await dialogService.DisplayTextPromptAsync("删除类别失败", "已分类的图片至少需要有一个类别");
+            await dialogService.ConfirmAsync("删除类别失败","已分类的图片至少需要有一个类别");
             return;
         }
 

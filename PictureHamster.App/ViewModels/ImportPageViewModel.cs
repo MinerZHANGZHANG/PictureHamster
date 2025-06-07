@@ -135,6 +135,14 @@ public partial class ImportPageViewModel(IDialogService dialogService, ImageStor
 
     #endregion
 
+    /// <summary>
+    /// 初始化ViewModel状态
+    /// </summary>
+    public void Init()
+    {
+        LoadImages();
+    }
+
     #region Command
 
     /// <summary>
@@ -307,20 +315,12 @@ public partial class ImportPageViewModel(IDialogService dialogService, ImageStor
             SaveImportResult([.. imagePaths]);
         }
 
-        await dialogService.DisplayTextPromptAsync("导入完成", $"查找到{imagePaths}副图片，已完成导入");
+        await dialogService.ConfirmAsync("导入完成", $"查找到{imagePaths}副图片，已完成导入");
     }
 
     #endregion
 
     #region 辅助函数
-
-    /// <summary>
-    /// 初始化ViewModel状态
-    /// </summary>
-    public void Init()
-    {
-        LoadImages();
-    }
 
     /// <summary>
     /// 加载已导入图片并组织为目录

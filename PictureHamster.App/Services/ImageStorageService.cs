@@ -39,12 +39,22 @@ public class ImageStorageService
     /// <summary>
     /// 当前分类信息列表
     /// </summary>
-    public List<CategoryItem> CategoryItems { get; init; }
+    public List<CategoryItem> CategoryItems { get; private set; }
 
     /// <summary>
     /// 类别名称字典
     /// </summary>
-    public Dictionary<string, CategoryItem> CategoryNameDict { get; init; }
+    public Dictionary<string, CategoryItem> CategoryNameDict { get; private set; }
+
+    /// <summary>
+    /// 类别名称映射列表
+    /// </summary>
+    public List<CategoryMapping> CategoryMappings { get; private set; }
+
+    /// <summary>
+    /// 类别名称映射字典 Key: 类别名称, Value: 映射的主类别名称
+    /// </summary>
+    public Dictionary<string, string> CategoryMappingDict { get; private set; }
 
     /// <summary>
     /// 支持的图片后缀名
@@ -57,57 +67,26 @@ public class ImageStorageService
     {
         Database = liteDatabase;
 
+        // 加载类别映射
+        CategoryMappings = LoadCategoryMappings(liteDatabase);
+        CategoryMappingDict = RefreshCategoryMappingDict();
+
         // 加载所有图片信息
-        ImageItems = [.. liteDatabase.GetCollection<ImageItem>()
-            .FindAll()
-            .OrderByDescending(i => i.LastModifyTime)];
+        ImageItems = LoadImages(liteDatabase);
         ImagePaths = [.. ImageItems.Select(i => i.Path)];
 
         // 从图片信息中加载目录信息
-        DirectoryItems = [.. ImageItems
-            .GroupBy(i => i.DirectoryPath)
-            .Select(g => new DirectoryItem
-            {
-                Path = g.Key,
-                ImageItems = [.. g]
-            })];
+        DirectoryItems = LoadDirectoryItems();
         DirectoryPathDict = DirectoryItems
             .ToDictionary(DirectoryItems => DirectoryItems.Path, DirectoryItems => DirectoryItems);
+
+        // 刷新图片的映射类别
+        RefreshImageMappingCategories();
 
         // 从图片信息中加载分类信息
         CategoryNameDict = [];
         CategoryItems = [];
-        foreach (var imageItem in ImageItems)
-        {
-            if (imageItem.Categories.Count == 0)
-            {
-                continue;
-            }
-
-            foreach (var categoryName in imageItem.Categories)
-            {
-                if (string.IsNullOrEmpty(categoryName))
-                {
-                    continue;
-                }
-
-                if (CategoryNameDict.TryGetValue(categoryName, out var categoryItem))
-                {
-                    categoryItem.ImageItems.Add(imageItem);
-                }
-                else
-                {
-                    categoryItem = new CategoryItem
-                    {
-                        Name = categoryName,
-                        ImageItems = [imageItem]
-                    };
-
-                    CategoryItems.Add(categoryItem);
-                    CategoryNameDict.Add(categoryName, categoryItem);
-                }
-            }
-        }
+        RefreshCategoryItems();
     }
 
     #region 保存操作
@@ -221,46 +200,15 @@ public class ImageStorageService
     }
 
     /// <summary>
-    /// 将图片对象从旧的分类映射到新的分类
+    /// 更新图片的分类映射信息，并刷新相关的类别映射字典和图片类别信息
     /// </summary>
-    /// <param name="oldCategories">旧分类</param>
-    /// <param name="newCategories">新分类</param>
-    /// <param name="imageItem">图片对象</param>
-    private void UpdateCategoryMappings(ImageItem imageItem, IEnumerable<string> oldCategories, IEnumerable<string> newCategories)
+    public int UpdateImageCategoryMappings(IEnumerable<CategoryMapping> categoryMappings)
     {
-        // 从旧分类移除
-        foreach (var oldCategory in oldCategories)
-        {
-            if (CategoryNameDict.TryGetValue(oldCategory, out var categoryItem))
-            {
-                categoryItem.ImageItems.Remove(imageItem);
-            }
-        }
-
-        // 添加到新分类
-        foreach (var categoryName in newCategories)
-        {
-            if (string.IsNullOrEmpty(categoryName))
-            {
-                continue;
-            }
-
-            // 如果分类已经存在，则添加图片到分类
-            if (CategoryNameDict.TryGetValue(categoryName, out var categoryItem))
-            {
-                categoryItem.ImageItems.Add(imageItem);
-            }
-            else
-            {
-                categoryItem = new CategoryItem
-                {
-                    Name = categoryName,
-                    ImageItems = [imageItem]
-                };
-                CategoryItems.Add(categoryItem);
-                CategoryNameDict.Add(categoryName, categoryItem);
-            }
-        }
+        CategoryMappings = [.. categoryMappings];
+        RefreshCategoryMappingDict();
+        RefreshImageMappingCategories();
+        RefreshImageCategories();
+        return Database.GetCollection<CategoryMapping>().Upsert(CategoryMappings);
     }
 
     #endregion
@@ -317,6 +265,172 @@ public class ImageStorageService
         return categoryItem.ImageItems;
     }
 
+    /// <summary>
+    /// 按最新的映射刷新图片类别
+    /// </summary>
+    public void RefreshImageCategories()
+    {
+        CategoryNameDict = [];
+        CategoryItems = [];
+        RefreshCategoryItems();
+    }
+
     #endregion
 
+    #region 辅助方法
+
+    /// <summary>
+    /// 刷新图片类别
+    /// </summary>
+    private void RefreshCategoryItems()
+    {
+        foreach (var imageItem in ImageItems)
+        {
+            if (imageItem.Categories.Count == 0)
+            {
+                continue;
+            }
+
+            foreach (var categoryName in imageItem.MapppingCategories)
+            {
+                if (string.IsNullOrEmpty(categoryName))
+                {
+                    continue;
+                }
+
+                if (CategoryNameDict.TryGetValue(categoryName, out var categoryItem))
+                {
+                    categoryItem.ImageItems.Add(imageItem);
+                }
+                else
+                {
+                    categoryItem = new CategoryItem
+                    {
+                        Name = categoryName,
+                        ImageItems = [imageItem]
+                    };
+
+                    CategoryItems.Add(categoryItem);
+                    CategoryNameDict.Add(categoryName, categoryItem);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// 加载类别映射信息
+    /// </summary>
+    private static List<CategoryMapping> LoadCategoryMappings(ILiteDatabase liteDatabase)
+    {
+        return [.. liteDatabase.GetCollection<CategoryMapping>()
+            .FindAll()];
+    }
+
+    /// <summary>
+    /// 从图片信息中加载目录信息
+    /// </summary>
+    private List<DirectoryItem> LoadDirectoryItems()
+    {
+        return [.. ImageItems
+            .GroupBy(i => i.DirectoryPath)
+            .Select(g => new DirectoryItem
+            {
+                Path = g.Key,
+                ImageItems = [.. g]
+            })];
+    }
+
+    /// <summary>
+    /// 加载图片信息
+    /// </summary>
+    private List<ImageItem> LoadImages(ILiteDatabase liteDatabase)
+    {
+        return [.. liteDatabase.GetCollection<ImageItem>()
+            .FindAll()
+            .OrderByDescending(i => i.LastModifyTime)];
+    }
+
+    /// <summary>
+    /// 刷新图片的映射类别
+    /// </summary>
+    private void RefreshImageMappingCategories()
+    {
+        foreach (var imageItem in ImageItems)
+        {
+            imageItem.MapppingCategories = [];
+            foreach (var category in imageItem.Categories)
+            {
+                if (CategoryMappingDict.TryGetValue(category, out var mappingCategory))
+                {
+                    imageItem.MapppingCategories.Add(mappingCategory);
+                }
+                else
+                {
+                    imageItem.MapppingCategories.Add(category);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// 将图片对象从旧的分类映射到新的分类
+    /// </summary>
+    /// <param name="oldCategories">旧分类</param>
+    /// <param name="newCategories">新分类</param>
+    /// <param name="imageItem">图片对象</param>
+    private void UpdateCategoryMappings(ImageItem imageItem, IEnumerable<string> oldCategories, IEnumerable<string> newCategories)
+    {
+        // 从旧分类移除
+        foreach (var oldCategory in oldCategories)
+        {
+            if (CategoryNameDict.TryGetValue(oldCategory, out var categoryItem))
+            {
+                categoryItem.ImageItems.Remove(imageItem);
+            }
+        }
+
+        // 添加到新分类
+        foreach (var categoryName in newCategories)
+        {
+            if (string.IsNullOrEmpty(categoryName))
+            {
+                continue;
+            }
+
+            // 如果分类已经存在，则添加图片到分类
+            if (CategoryNameDict.TryGetValue(categoryName, out var categoryItem))
+            {
+                categoryItem.ImageItems.Add(imageItem);
+            }
+            else
+            {
+                categoryItem = new CategoryItem
+                {
+                    Name = categoryName,
+                    ImageItems = [imageItem]
+                };
+                CategoryItems.Add(categoryItem);
+                CategoryNameDict.Add(categoryName, categoryItem);
+            }
+        }
+    }
+
+    /// <summary>
+    /// 刷新类别映射字典
+    /// </summary>
+    /// <returns></returns>
+    private Dictionary<string, string> RefreshCategoryMappingDict()
+    {
+        Dictionary<string, string> categoryMappingDict = [];
+        foreach (var mapping in CategoryMappings)
+        {
+            foreach (var subCategory in mapping.MappedCategories)
+            {
+                categoryMappingDict.TryAdd(subCategory, mapping.Name);
+            }
+        }
+        return categoryMappingDict;
+    }
+
+    #endregion
 }

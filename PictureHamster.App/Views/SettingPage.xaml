@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--  设置界面  -->
+<ContentPage
+    x:Class="PictureHamster.App.Views.SettingPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:fa="clr-namespace:UraniumUI.Icons.FontAwesome;assembly=UraniumUI.Icons.FontAwesome"
+    xmlns:models="clr-namespace:PictureHamster.Share.Models;assembly=PictureHamster.Share"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+    xmlns:viewModel="clr-namespace:PictureHamster.App.ViewModels"
+    Title="应用设置"
+    x:DataType="viewModel:SettingPageViewModel">
+    <ContentPage.Resources>
+        <!--  可自定义表格样式  -->
+        <Style x:Key="TableFrameStyle" TargetType="Border">
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Margin" Value="8" />
+        </Style>
+        <Style x:Key="TableHeaderStyle" TargetType="Label">
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="TextColor" Value="{StaticResource Primary}" />
+            <Setter Property="Padding" Value="8,4" />
+        </Style>
+        <Style x:Key="TableRowStyle" TargetType="Grid">
+            <Setter Property="Padding" Value="8,4" />
+        </Style>
+    </ContentPage.Resources>
+    <Grid Padding="16">
+        <Grid RowDefinitions="Auto,*">
+            <Button Command="{Binding SaveCategoryMappingsCommand}" Text="保存类别映射" />
+            <Grid
+                Grid.Row="1"
+                ColumnDefinitions="*,*"
+                ColumnSpacing="24">
+                <!--  主类别表格  -->
+                <Border Grid.Column="0" Style="{StaticResource TableFrameStyle}">
+                    <VerticalStackLayout>
+                        <Label Style="{StaticResource TableHeaderStyle}" Text="主类别" />
+                        <CollectionView
+                            ItemsSource="{Binding MainCategories}"
+                            SelectedItem="{Binding SelectedMainCategory, Mode=TwoWay}"
+                            SelectionMode="Single">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="models:CategoryMapping">
+                                    <Grid ColumnDefinitions="*,Auto" Style="{StaticResource TableRowStyle}">
+                                        <Label Text="{Binding Name}" VerticalOptions="Center" />
+                                        <Button
+                                            Grid.Column="1"
+                                            BackgroundColor="Transparent"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type viewModel:SettingPageViewModel}}, Path=DeleteMainCategoryCommand}"
+                                            CommandParameter="{Binding .}"
+                                            Text="🗑" />
+                                    </Grid>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                        <!--  新增主类别  -->
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Entry
+                                Margin="8"
+                                Placeholder="新增主类别"
+                                Text="{Binding NewMainCategoryText, Mode=TwoWay}" />
+                            <Button
+                                Grid.Column="1"
+                                Command="{Binding AddMainCategoryCommand}"
+                                StyleClass="AccentButton"
+                                Text="添加" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+                <!--  子类别表格  -->
+                <Border Grid.Column="1" Style="{StaticResource TableFrameStyle}">
+                    <VerticalStackLayout>
+                        <Label Style="{StaticResource TableHeaderStyle}" Text="子类别" />
+                        <CollectionView ItemsSource="{Binding SubCategories}" SelectionMode="None">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="x:String">
+                                    <Grid ColumnDefinitions="*,Auto" Style="{StaticResource TableRowStyle}">
+                                        <Label Text="{Binding .}" VerticalOptions="Center" />
+                                        <Button
+                                            Grid.Column="1"
+                                            BackgroundColor="Transparent"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type viewModel:SettingPageViewModel}}, Path=DeleteSubCategoryCommand}"
+                                            CommandParameter="{Binding .}"
+                                            Text="🗑" />
+                                    </Grid>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                        <!--  新增子类别  -->
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Entry
+                                Margin="8"
+                                Placeholder="新增子类别"
+                                Text="{Binding NewSubCategoryText, Mode=TwoWay}" />
+                            <Button
+                                Grid.Column="1"
+                                Command="{Binding AddSubCategoryCommand}"
+                                StyleClass="AccentButton"
+                                Text="添加" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+            </Grid>
+        </Grid>
+    </Grid>
+</ContentPage>

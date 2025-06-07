@@ -23,5 +23,7 @@ internal class LiteDBHelper
             .Ignore(x=>x.IsSelected);
         mapper.Entity<ModelSetting>()
             .Id(x => x.ModelId);
+        mapper.Entity<CategoryMapping>()
+            .Id(x => x.Name);
     }
 }
