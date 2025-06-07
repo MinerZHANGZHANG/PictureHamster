@@ -12,6 +12,9 @@ internal class LiteDBHelper
         return new LiteDatabase(DatabasePath);
     }
 
+    /// <summary>
+    /// 初始化实体类映射
+    /// </summary>
     public static void InitMapper()
     {
         var mapper = BsonMapper.Global;

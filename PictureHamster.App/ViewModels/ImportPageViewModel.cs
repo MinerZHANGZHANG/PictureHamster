@@ -1,11 +1,16 @@
-﻿using System.Collections.ObjectModel;
-using System.Windows.Input;
+﻿using CommunityToolkit.Maui.Core;
+using CommunityToolkit.Maui.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LiteDB;
 using PictureHamster.App.Services;
 using PictureHamster.App.Utils;
 using PictureHamster.Share.Models;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows.Input;
 using UraniumUI.Dialogs;
 
 namespace PictureHamster.App.ViewModels;
@@ -229,31 +234,28 @@ public partial class ImportPageViewModel(IDialogService dialogService, ImageStor
     [RelayCommand]
     public async Task ImportImages()
     {
-        // 打开文件选择器选择一或多张图片
-        FileResult? photo = await MediaPicker.Default.PickPhotoAsync();
-        if (photo == null)
-        {
-            return;
-        }
-
-        using (var stream = await photo.OpenReadAsync())
-        {
-           
-        }
-        var directoryPath = Path.GetDirectoryName(photo.FullPath);
-        if (string.IsNullOrEmpty(directoryPath))
-        {
-            return;
-        }
-
-        // 开启开关时，导入所在目录下的所有图片
+        // 开启开关时，导入文件夹下的所有图片
         if (IsImportAllImageInDirectory)
         {
-            SaveImportResult([.. ImageStorageService.LoadDirectoryImagePaths(directoryPath)]);
+            var result = await FolderPicker.Default.PickAsync();
+            if (!result.IsSuccessful)
+            {
+                return;
+
+            }
+
+            SaveImportResult([.. ImageStorageService.LoadDirectoryImagePaths(result.Folder.Path)]);
         }
         // 否则只导入选中的图片
         else
         {
+            // 打开文件选择器选择一或多张图片
+            FileResult? photo = await MediaPicker.Default.PickPhotoAsync();
+            if (photo == null)
+            {
+                return;
+            }
+
             SaveImportResult([photo.FullPath]);
         }
     }
@@ -262,7 +264,7 @@ public partial class ImportPageViewModel(IDialogService dialogService, ImageStor
     /// 自动导入现有文件的图片
     /// </summary>
     [RelayCommand]
-    public void AutoImportImages()
+    public async Task AutoImportImages()
     {
         // 自动导入已经导入过的地址
         List<string> imagePaths = [];
@@ -275,25 +277,29 @@ public partial class ImportPageViewModel(IDialogService dialogService, ImageStor
             }
         }
 
-        // TODO:对于android设备，自动导入屏幕截图和相册
 #if ANDROID
-        var cameraDir = "/storage/emulated/0/DCIM/Camera";
-        var screenshotsDir1 = "/storage/emulated/0/Pictures/Screenshots";
-        var screenshotsDir2 = "/storage/emulated/0/DCIM/Screenshots";
 
-        List<string> autoImportDirs = [cameraDir, screenshotsDir1, screenshotsDir2];
-
-        foreach (var dir in autoImportDirs)
+        // 对于android设备，自动导入屏幕截图和相册
+        if (await dialogService.ConfirmAsync("自动导入", "是否自动导入相机/截图相册中的图片？"))
         {
-            if (Directory.Exists(dir))
+            var cameraDir = "/storage/emulated/0/DCIM/Camera";
+            var screenshotsDir1 = "/storage/emulated/0/Pictures/Screenshots";
+            var screenshotsDir2 = "/storage/emulated/0/DCIM/Screenshots";
+
+            List<string> autoImportDirs = [cameraDir, screenshotsDir1, screenshotsDir2];
+            foreach (var dir in autoImportDirs)
             {
-                var paths = ImageStorageService.LoadDirectoryImagePaths(dir);
-                if (paths.Any())
+                if (Directory.Exists(dir))
                 {
-                    imagePaths.AddRange(paths);
+                    var paths = ImageStorageService.LoadDirectoryImagePaths(dir);
+                    if (paths.Any())
+                    {
+                        imagePaths.AddRange(paths);
+                    }
                 }
             }
         }
+
 #endif
 
         if (imagePaths.Count > 0)
@@ -301,7 +307,7 @@ public partial class ImportPageViewModel(IDialogService dialogService, ImageStor
             SaveImportResult([.. imagePaths]);
         }
 
-        
+        await dialogService.DisplayTextPromptAsync("导入完成", $"查找到{imagePaths}副图片，已完成导入");
     }
 
     #endregion

@@ -9,6 +9,7 @@ namespace PictureHamster.App.ViewModels;
 
 public partial class CategoryPageViewModel(ImageStorageService imageStorageService) : ObservableObject, IViewModel
 {
+    #region 字段和属性
 
     /// <summary>
     /// 搜索框文本
@@ -35,6 +36,10 @@ public partial class CategoryPageViewModel(ImageStorageService imageStorageServi
         // 初始化类别列表
         Categories = [.. imageStorageService.CategoryItems.Take(10)];
     }
+
+    #endregion
+
+    #region Command
 
     /// <summary>
     /// 搜索符合条件的类别
@@ -70,4 +75,6 @@ public partial class CategoryPageViewModel(ImageStorageService imageStorageServi
         // 导航到类别详情页，并传递类别名称
         await Shell.Current.GoToAsync($"//{nameof(CategoryDetailsPage)}?{nameof(CategoryDetailsPage.CategoryName)}={category.Name}");
     }
+
+    #endregion
 }

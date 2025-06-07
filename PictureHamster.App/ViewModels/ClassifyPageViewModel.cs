@@ -1,11 +1,7 @@
-﻿using System.ComponentModel;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
+﻿using Azure;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LiteDB;
-using Microsoft.Maui.ApplicationModel;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.Ollama;
@@ -14,13 +10,9 @@ using PictureHamster.App.Services;
 using PictureHamster.App.Views;
 using PictureHamster.Share.Enums;
 using PictureHamster.Share.Models;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats;
-using SixLabors.ImageSharp.Formats.Png;
-using SixLabors.ImageSharp.Metadata;
-using SixLabors.ImageSharp.Processing;
+using System.ComponentModel;
+using System.Text;
 using UraniumUI.Dialogs;
-using Image = SixLabors.ImageSharp.Image;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace PictureHamster.App.ViewModels;
@@ -30,6 +22,8 @@ namespace PictureHamster.App.ViewModels;
 
 public partial class ClassifyPageViewModel(ImageStorageService imageStorageService, PreferencesService preferencesService, IDialogService dialogService, ILiteDatabase database) : ObservableObject, IViewModel
 {
+    #region 字段和属性
+
     /// <summary>
     /// AI服务接口类型
     /// </summary>
@@ -94,10 +88,11 @@ public partial class ClassifyPageViewModel(ImageStorageService imageStorageServi
     /// <summary>
     /// 当前选中的模型设置
     /// </summary>
-    public ModelSetting CurrentModelSetting => ModelSettings.FirstOrDefault(x => x.ModelId == ModelId) ?? new ModelSetting()
-    {
-        ModelId = ModelId,
-    };
+    public ModelSetting CurrentModelSetting => ModelSettings.FirstOrDefault(x => x.ModelId == ModelId)
+        ?? new ModelSetting()
+        {
+            ModelId = ModelId,
+        };
 
     /// <summary>
     /// 当前导入的图片，通过文件夹分组的列表
@@ -154,6 +149,8 @@ public partial class ClassifyPageViewModel(ImageStorageService imageStorageServi
     }
     private bool _isSkipClassifiedImageByHand = true;
 
+    #endregion
+
     /// <summary>
     /// 初始化
     /// </summary>
@@ -176,8 +173,14 @@ public partial class ClassifyPageViewModel(ImageStorageService imageStorageServi
         PropertyChanged += ClassifyPageViewModel_PropertyChanged;
     }
 
+    #region 辅助方法
+
+    /// <summary>
+    /// 属性变化时的处理方法
+    /// </summary>
     private void ClassifyPageViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
+        // 监听AI服务设置的变化
         if (e.PropertyName == nameof(ApiServiceType)
             || e.PropertyName == nameof(ApiServiceUrl)
             || e.PropertyName == nameof(ModelId)
@@ -195,32 +198,21 @@ public partial class ClassifyPageViewModel(ImageStorageService imageStorageServi
     }
 
     /// <summary>
-    /// 对选中的图片进行分类
+    /// 尝试创建一个语义内核和提示词执行设置
     /// </summary>
-    [RelayCommand]
-    public async Task ClassifyImages()
+    /// <param name="uri">AI服务地址</param>
+    /// <param name="promptExecutionSettings">提示词执行设置</param>
+    /// <param name="kernel">语义内核</param>
+    /// <param name="errorMessage">错误信息</param>
+    /// <returns>是否创建成功</returns>
+    private bool TryBuildKernelAndSettings(Uri uri, out PromptExecutionSettings? promptExecutionSettings, out Kernel? kernel, out string errorMessage)
     {
-        var selectedImages = DirectoryItems
-            .Where(dir => dir.IsSelected)
-            .SelectMany(dir => dir.ImageItems)
-            .Where(img => img.Categories.Count == 0 || !IsSkipClassifiedImage)
-            .Where(img => img.CategorySource != CategorySource.User || !IsSkipClassifiedImageByHand)
-            ;
-        if (!selectedImages.Any())
-        {
-            return;
-        }
+        errorMessage = string.Empty;
+        kernel = null;
+        promptExecutionSettings = null;
 
-        if (!Uri.TryCreate(ApiServiceUrl, UriKind.Absolute, out var uri))
-        {
-            return;
-        }
-
-        
-
+        // 根据模型设置创建语义内核和对应的提示词执行设置
         IKernelBuilder kernelBuilder = Kernel.CreateBuilder();
-        PromptExecutionSettings promptExecutionSettings = new();
-        ModelSetting modelSetting = CurrentModelSetting;
         switch (ApiServiceType)
         {
             case AIApiType.Ollama:
@@ -230,9 +222,9 @@ public partial class ClassifyPageViewModel(ImageStorageService imageStorageServi
                     );
                 promptExecutionSettings = new OllamaPromptExecutionSettings()
                 {
-                    Temperature = modelSetting.Temperature,
-                    TopP = modelSetting.TopP,
-                    TopK = modelSetting.TopK,
+                    Temperature = CurrentModelSetting.Temperature,
+                    TopP = CurrentModelSetting.TopP,
+                    TopK = CurrentModelSetting.TopK,
                     Stop = ["}"],
                 };
                 break;
@@ -246,25 +238,65 @@ public partial class ClassifyPageViewModel(ImageStorageService imageStorageServi
                     });
                 promptExecutionSettings = new OpenAIPromptExecutionSettings()
                 {
-                    Temperature = modelSetting.Temperature,
-                    TopP = modelSetting.TopP,
+                    Temperature = CurrentModelSetting.Temperature,
+                    TopP = CurrentModelSetting.TopP,
                     StopSequences = ["}"],
                 };
                 break;
             case AIApiType.None:
-                return;
+                errorMessage = "未配置AI接口类型";
+                return false;
             default:
-                return;
+                errorMessage = "暂不支持的AI接口类型";
+                return false;
         }
-        Kernel kernel = kernelBuilder.Build();
 
-        int maxPixelCount = 1800000;
-        int maxContextSize = 30000;
+        kernel = kernelBuilder.Build();
+        return true;
+    }
+
+    #endregion
+
+    #region Command
+
+    /// <summary>
+    /// 对选中的图片进行分类
+    /// </summary>
+    [RelayCommand]
+    public async Task ClassifyImages()
+    {
+        // 筛选选中的图片
+        var selectedImages = DirectoryItems
+            .Where(dir => dir.IsSelected)
+            .SelectMany(dir => dir.ImageItems)
+            .Where(img => img.Categories.Count == 0 || !IsSkipClassifiedImage)
+            .Where(img => img.CategorySource != CategorySource.User || !IsSkipClassifiedImageByHand);
+
+        if (!selectedImages.Any())
+        {
+            await dialogService.DisplayTextPromptAsync("没有选中的图片", "请先选择需要分类的图片。");
+            return;
+        }
+
+        if (!Uri.TryCreate(ApiServiceUrl, UriKind.Absolute, out var apiServiceUri))
+        {
+            await dialogService.DisplayTextPromptAsync("不正确的分类服务地址", $"AI对话接口地址[{ApiServiceUrl}]不是一个有效的Url，请检查配置");
+            return;
+        }
+
+        if (!TryBuildKernelAndSettings(apiServiceUri, out var promptExecutionSettings, out var kernel, out var errorMessage)
+            || kernel == null 
+            || promptExecutionSettings == null)
+        {
+            await dialogService.DisplayTextPromptAsync("无法创建语义内核", errorMessage);
+            return;
+        }
+
         ClassifyProgress = 0;
-
         IsClassifying = true;
 
         // 调用AI服务进行分类
+        StringBuilder classifyFailMessageBuilder = new();
         foreach (var imageItem in selectedImages)
         {
             // 允许终止分类操作
@@ -272,37 +304,15 @@ public partial class ClassifyPageViewModel(ImageStorageService imageStorageServi
             {
                 _isRequestEndClassify = false;
                 IsClassifying = false;
+                await dialogService.DisplayTextPromptAsync("操作已取消", "您已取消了分类操作。");
                 return;
             }
 
             if (!File.Exists(imageItem.Path) || !Uri.TryCreate(imageItem.Path, UriKind.Absolute, out var imageUri))
             {
+                classifyFailMessageBuilder.AppendLine($"图片文件[{imageItem.Path}]不存在或不是有效的Url，跳过该图片。");
                 continue;
             }
-
-            //// 读取图片文件
-            //using Image image = await Image.LoadAsync(imageItem.Path);
-            //int pixelCount = image.Width * image.Height;
-            //if (pixelCount > maxPixelCount)
-            //{
-            //    // 计算缩放比例
-            //    double scaleFactor = Math.Sqrt(1800000.0 / pixelCount);
-            //    int newWidth = (int)(image.Width * scaleFactor);
-            //    int newHeight = (int)(image.Height * scaleFactor);
-
-            //    // 缩放图片
-            //    image.Mutate(x => x.Resize(newWidth, newHeight));
-            //}
-
-            //var base64String = image.ToBase64String(PngFormat.Instance);
-            //if (base64String.Length > maxContextSize)
-            //{
-            //    // 图片过大，跳过
-            //    //continue;
-            //}
-
-            //string pngPath = Path.Combine(Path.GetTempPath(), $"{imageItem.Name}.png");
-            //await image.SaveAsPngAsync(pngPath);
 
             string mimeType = "image/png";
             switch (imageItem.Path)
@@ -328,11 +338,10 @@ public partial class ClassifyPageViewModel(ImageStorageService imageStorageServi
 
             // 调用AI服务进行分类
             ChatHistory chatHistory = [];
-            chatHistory.AddSystemMessage(modelSetting.Prompt);
+            chatHistory.AddSystemMessage(CurrentModelSetting.Prompt);
             chatHistory.AddUserMessage([new ImageContent(await File.ReadAllBytesAsync(imageItem.Path), mimeType)]);
 
             var chatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
-
             try
             {
                 var response = await chatCompletionService.GetChatMessageContentAsync(
@@ -342,12 +351,14 @@ public partial class ClassifyPageViewModel(ImageStorageService imageStorageServi
                     );
                 if (string.IsNullOrEmpty(response.Content))
                 {
+                    classifyFailMessageBuilder.AppendLine($"图片文件[{imageItem.Path}]未能从{apiServiceUri}获取有效的响应");
                     continue;
                 }
 
                 ImageClassifyResult? classifyResult = JsonSerializer.Deserialize<ImageClassifyResult>(response.Content + "}");
                 if (classifyResult == null)
                 {
+                    classifyFailMessageBuilder.AppendLine($"图片文件[{imageItem.Path}]的返回值 {response.Content + "}"} 未能被解析");
                     continue;
                 }
 
@@ -365,6 +376,7 @@ public partial class ClassifyPageViewModel(ImageStorageService imageStorageServi
             }
             catch (Exception ex)
             {
+                classifyFailMessageBuilder.AppendLine($"图片文件[{imageItem.Path}]在获取AI接口分类结果过程中发生错误{ex.Message}");
                 continue;
             }
         }
@@ -387,8 +399,6 @@ public partial class ClassifyPageViewModel(ImageStorageService imageStorageServi
     [RelayCommand]
     public async Task ToClassificaionResultPage()
     {
-        // Navigate to the classification result page
-        // This is a placeholder for the actual navigation logic
         await Shell.Current.GoToAsync($"//{nameof(CategoryPage)}");
     }
 
@@ -423,6 +433,8 @@ public partial class ClassifyPageViewModel(ImageStorageService imageStorageServi
             }
         }
     }
+
+    #endregion
 }
 
 public class ImageClassifyResult

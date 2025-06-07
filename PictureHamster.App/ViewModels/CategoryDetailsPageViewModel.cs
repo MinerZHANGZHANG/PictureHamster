@@ -15,6 +15,8 @@ namespace PictureHamster.App.ViewModels;
 /// </summary>
 public partial class CategoryDetailsPageViewModel(IDialogService dialogService, ImageStorageService imageStorageService) : ObservableObject, IViewModel
 {
+    #region 属性和字段
+    
     /// <summary>
     /// 页面类别
     /// </summary>
@@ -149,6 +151,8 @@ public partial class CategoryDetailsPageViewModel(IDialogService dialogService, 
     }
     private ObservableCollection<string> _imageKeywords = [];
 
+    #endregion
+
     /// <summary>
     /// 初始化类别详情页
     /// </summary>
@@ -162,22 +166,8 @@ public partial class CategoryDetailsPageViewModel(IDialogService dialogService, 
         }
     }
 
-    /// <summary>
-    /// 加载类别下的图片
-    /// </summary>
-    /// <param name="categoryName">类别名称</param>
-    private void LoadCategoryImageItems(string categoryName)
-    {
-        SelectedImageItem = null;
-        var imageItems = imageStorageService.GetImageItemsByCategory(categoryName);
-        ImageItemsPageCollection = new PageCollection<ImageItem>(imageItems
-            , 0
-            , 9);
-        SmallImageItemsPageCollection = new PageCollection<ImageItem>(imageItems
-            , 0
-            , 1);
-    }
-
+    #region Command
+    
     /// <summary>
     /// 显示操作介绍
     /// </summary>
@@ -214,7 +204,7 @@ public partial class CategoryDetailsPageViewModel(IDialogService dialogService, 
     }
 
     /// <summary>
-    /// 刷新当前状态，不过目前没有什么状态需要刷新的
+    /// 重新加载当前类别的图片
     /// </summary>
     [RelayCommand]
     public void RefreshState()
@@ -434,7 +424,30 @@ public partial class CategoryDetailsPageViewModel(IDialogService dialogService, 
     {
         await Shell.Current.GoToAsync($"//{nameof(CategoryPage)}");
     }
+    #endregion
 
+    #region 辅助方法
+
+    /// <summary>
+    /// 加载类别下的图片
+    /// </summary>
+    /// <param name="categoryName">类别名称</param>
+    private void LoadCategoryImageItems(string categoryName)
+    {
+        SelectedImageItem = null;
+        var imageItems = imageStorageService.GetImageItemsByCategory(categoryName);
+        ImageItemsPageCollection = new PageCollection<ImageItem>(imageItems
+            , 0
+            , 9);
+        SmallImageItemsPageCollection = new PageCollection<ImageItem>(imageItems
+            , 0
+            , 1);
+    }
+
+    /// <summary>
+    /// 当选中图片时，更新输入框的内容
+    /// </summary>
+    /// <param name="imageItem"></param>
     private void UpdateInputOnSelectedImage(ImageItem? imageItem)
     {
         if (imageItem == null)
@@ -449,4 +462,5 @@ public partial class CategoryDetailsPageViewModel(IDialogService dialogService, 
         ImageCategories = [.. imageItem.Categories];
     }
 
+    #endregion
 }

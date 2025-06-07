@@ -3,13 +3,14 @@ using CommunityToolkit.Mvvm.Input;
 using PictureHamster.App.Services;
 using PictureHamster.Share.Models;
 using System.Collections.ObjectModel;
-using Microsoft.Maui.ApplicationModel.DataTransfer;
 using UraniumUI.Dialogs;
 
 namespace PictureHamster.App.ViewModels;
 
 public partial class RetrievePageViewModel(ImageStorageService imageStorageService, IDialogService dialogService) : ObservableObject, IViewModel
 {
+    #region 属性和字段
+
     /// <summary>
     /// 查询文本
     /// </summary>
@@ -30,10 +31,12 @@ public partial class RetrievePageViewModel(ImageStorageService imageStorageServi
     }
     private ObservableCollection<ImageItem> _searchResults = [];
 
-    public void Init()
-    {
+    #endregion
 
-    }
+    public void Init()
+    {}
+
+    #region Command
 
     /// <summary>
     /// 搜索符合条件的图片
@@ -92,4 +95,6 @@ public partial class RetrievePageViewModel(ImageStorageService imageStorageServi
             File = new ShareFile(path)
         });
     }
+
+    #endregion
 }

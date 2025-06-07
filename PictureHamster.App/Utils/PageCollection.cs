@@ -1,5 +1,4 @@
-﻿
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections;
 
 namespace PictureHamster.App.Utils;
@@ -24,10 +23,15 @@ public class PageCollection<T> : ObservableObject, IEnumerable<T>
     public T? FirstPageItem => CurrentPageItems.FirstOrDefault();
 
     public PageCollection()
-    {
+    {}
 
-    }
-
+    /// <summary>
+    /// 创建分页集合
+    /// </summary>
+    /// <param name="items"></param>
+    /// <param name="pageIndex"></param>
+    /// <param name="pageSize"></param>
+    /// <exception cref="ArgumentException"></exception>
     public PageCollection(IEnumerable<T> items, int pageIndex, int pageSize)
     {
         if (pageSize <= 0)
@@ -63,6 +67,10 @@ public class PageCollection<T> : ObservableObject, IEnumerable<T>
         }
     }
 
+    /// <summary>
+    /// 设置当前页索引为指定项所在的页
+    /// </summary>
+    /// <param name="item">特定项</param>
     public void SetPageIndexByItem(T item)
     {
         var index = AllItems.ToList().IndexOf(item);

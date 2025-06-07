@@ -123,7 +123,7 @@
                 <CheckBox Grid.Column="0" IsChecked="{Binding IsImportAllImageInDirectory}" />
                 <Label
                     Grid.Column="1"
-                    Text="是否一并导入所在文件夹的所有图片"
+                    Text="是否按文件夹导入图片"
                     VerticalOptions="Center" />
                 <Label Grid.Column="2" />
                 <Button
