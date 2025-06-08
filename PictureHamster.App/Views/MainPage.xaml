@@ -27,8 +27,20 @@
                 SemanticProperties.Description="A software that automatically categorizes images using AI"
                 SemanticProperties.HeadingLevel="Level2"
                 Style="{StaticResource SubHeadline}"
-                Text="——一款通过AI自动分类图片的软件" />
+                Text="——通过AI自动分类你的图片!" />
 
+            <Button
+                x:Name="ImportImageButton"
+                Clicked="ImportImageButton_Clicked"
+                Text="导入图片" />
+            <Button
+                x:Name="ClassifyImageButton"
+                Clicked="ClassifyImageButton_Clicked"
+                Text="分类图片" />
+            <Button
+                x:Name="RetrieveImageButton"
+                Clicked="RetrieveImageButton_Clicked"
+                Text="检索图片" />
         </VerticalStackLayout>
     </ScrollView>
 

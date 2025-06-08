@@ -60,7 +60,6 @@
                     IsVisible="{Binding IsShowImages}"
                     ItemsSource="{Binding ImageItemsPageCollection.CurrentPageItems}"
                     SelectedItem="{Binding SelectedImageItem}"
-                    SelectionChanged="OnPictureSelected"
                     SelectionMode="Single">
                     <CollectionView.ItemsLayout>
                         <GridItemsLayout Orientation="Vertical" Span="{OnPlatform 5, WinUI=8, Android=3}" />
@@ -77,15 +76,15 @@
                         </DataTemplate>
                     </CollectionView.ItemTemplate>
                 </CollectionView>
-                <StackLayout
+                <Grid
                     x:Name="ImageState"
                     Grid.Row="1"
                     IsVisible="{Binding IsShowSingleImage}">
                     <Image
-                        Aspect="AspectFill"
+                        Aspect="AspectFit"
                         Source="{Binding SmallImageItemsPageCollection.FirstPageItem.Path}"
                         VerticalOptions="Center" />
-                </StackLayout>
+                </Grid>
                 <StackLayout
                     x:Name="BlankState"
                     HorizontalOptions="Center"

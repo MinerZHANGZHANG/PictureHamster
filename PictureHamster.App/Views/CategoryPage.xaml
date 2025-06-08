@@ -9,7 +9,7 @@
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
     xmlns:viewModel="clr-namespace:PictureHamster.App.ViewModels"
-    Title="CategoryPage"
+    Title="类别浏览"
     x:DataType="viewModel:CategoryPageViewModel">
     <Grid Padding="10" RowSpacing="10">
         <Grid.RowDefinitions>
@@ -25,7 +25,7 @@
             <Entry
                 Margin="0,5"
                 HorizontalOptions="Fill"
-                Placeholder="请输入搜索关键词"
+                Placeholder="请输入搜索关键词，关键词为空时搜索可查看所有类别"
                 Text="{Binding SearchText}"
                 VerticalOptions="Center" />
             <Button

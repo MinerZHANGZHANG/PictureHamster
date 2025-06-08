@@ -208,7 +208,9 @@ public class ImageStorageService
         RefreshCategoryMappingDict();
         RefreshImageMappingCategories();
         RefreshImageCategories();
-        return Database.GetCollection<CategoryMapping>().Upsert(CategoryMappings);
+
+        Database.GetCollection<CategoryMapping>().DeleteAll();
+        return Database.GetCollection<CategoryMapping>().Insert(CategoryMappings);
     }
 
     #endregion

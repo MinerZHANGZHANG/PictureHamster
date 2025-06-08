@@ -234,6 +234,7 @@ public partial class CategoryDetailsPageViewModel(IDialogService dialogService, 
         else
         {
             SmallImageItemsPageCollection.NextPage();
+            SelectedImageItem = SmallImageItemsPageCollection.CurrentPageItems.FirstOrDefault();
         }
     }
 
@@ -250,6 +251,7 @@ public partial class CategoryDetailsPageViewModel(IDialogService dialogService, 
         else
         {
             SmallImageItemsPageCollection.PreviousPage();
+            SelectedImageItem = SmallImageItemsPageCollection.CurrentPageItems.FirstOrDefault();
         }
     }
 

@@ -50,7 +50,6 @@ public partial class CategoryPageViewModel(ImageStorageService imageStorageServi
         if (string.IsNullOrEmpty(SearchText))
         {
             Categories = [.. imageStorageService.CategoryItems];
-
         }
         else
         {

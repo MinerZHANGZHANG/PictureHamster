@@ -315,7 +315,7 @@ public partial class ImportPageViewModel(IDialogService dialogService, ImageStor
             SaveImportResult([.. imagePaths]);
         }
 
-        await dialogService.ConfirmAsync("导入完成", $"查找到{imagePaths}副图片，已完成导入");
+        await dialogService.ConfirmAsync("导入完成", $"查找到{imagePaths.Count}副图片，已完成导入");
     }
 
     #endregion

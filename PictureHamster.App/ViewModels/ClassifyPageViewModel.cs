@@ -6,12 +6,15 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.Ollama;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
+using OllamaSharp.Models;
 using PictureHamster.App.Services;
 using PictureHamster.App.Views;
 using PictureHamster.Share.Enums;
 using PictureHamster.Share.Models;
+using System.Buffers.Text;
 using System.ComponentModel;
 using System.Text;
+using System.Threading.Tasks;
 using UraniumUI.Dialogs;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
@@ -113,6 +116,16 @@ public partial class ClassifyPageViewModel(ImageStorageService imageStorageServi
         set => SetProperty(ref _classifyProgress, value);
     }
     private float _classifyProgress = 0f;
+
+    /// <summary>
+    /// 分类状态文本
+    /// </summary>
+    public string ClassifyProgressText
+    {
+        get => _classifyProgressText;
+        set => SetProperty(ref _classifyProgressText, value);
+    }
+    private string _classifyProgressText = string.Empty;
 
     /// <summary>
     /// 是否正在分类
@@ -241,6 +254,7 @@ public partial class ClassifyPageViewModel(ImageStorageService imageStorageServi
                     Temperature = CurrentModelSetting.Temperature,
                     TopP = CurrentModelSetting.TopP,
                     StopSequences = ["}"],
+                    ChatSystemPrompt = CurrentModelSetting.Prompt,
                 };
                 break;
             case AIApiType.None:
@@ -271,6 +285,9 @@ public partial class ClassifyPageViewModel(ImageStorageService imageStorageServi
             .SelectMany(dir => dir.ImageItems)
             .Where(img => img.Categories.Count == 0 || !IsSkipClassifiedImage)
             .Where(img => img.CategorySource != CategorySource.User || !IsSkipClassifiedImageByHand);
+        int imageCount = selectedImages.Count();
+        int successCount = 0;
+        int finishCount = 0;
 
         if (!selectedImages.Any())
         {
@@ -284,8 +301,13 @@ public partial class ClassifyPageViewModel(ImageStorageService imageStorageServi
             return;
         }
 
+        if (!(await dialogService.ConfirmAsync("开始分类", $"检测到{imageCount}幅图片待分类，确认开始吗?")))
+        {
+            return;
+        }
+
         if (!TryBuildKernelAndSettings(apiServiceUri, out var promptExecutionSettings, out var kernel, out var errorMessage)
-            || kernel == null 
+            || kernel == null
             || promptExecutionSettings == null)
         {
             await dialogService.ConfirmAsync("无法创建语义内核", errorMessage);
@@ -304,6 +326,10 @@ public partial class ClassifyPageViewModel(ImageStorageService imageStorageServi
             {
                 _isRequestEndClassify = false;
                 IsClassifying = false;
+
+                ClassifyProgressText = string.Empty;
+                ClassifyProgress = 0;
+
                 await dialogService.ConfirmAsync("操作已取消", "您已取消了分类操作。");
                 return;
             }
@@ -338,10 +364,18 @@ public partial class ClassifyPageViewModel(ImageStorageService imageStorageServi
 
             // 调用AI服务进行分类
             ChatHistory chatHistory = [];
-            chatHistory.AddSystemMessage(CurrentModelSetting.Prompt);
+            if (ApiServiceType == AIApiType.Ollama)
+            {
+                chatHistory.AddSystemMessage(CurrentModelSetting.Prompt);
+            }
+            else
+            {
+                chatHistory.AddUserMessage(CurrentModelSetting.Prompt);
+            }
             chatHistory.AddUserMessage([new ImageContent(await File.ReadAllBytesAsync(imageItem.Path), mimeType)]);
 
             var chatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
+            var responeseString=string.Empty;
             try
             {
                 var response = await chatCompletionService.GetChatMessageContentAsync(
@@ -354,6 +388,7 @@ public partial class ClassifyPageViewModel(ImageStorageService imageStorageServi
                     classifyFailMessageBuilder.AppendLine($"图片文件[{imageItem.Path}]未能从{apiServiceUri}获取有效的响应");
                     continue;
                 }
+                responeseString = response.Content;
 
                 ImageClassifyResult? classifyResult = JsonSerializer.Deserialize<ImageClassifyResult>(response.Content + "}");
                 if (classifyResult == null)
@@ -372,15 +407,23 @@ public partial class ClassifyPageViewModel(ImageStorageService imageStorageServi
 
                 // 更新图片分类结果
                 imageStorageService.UpdateImageCategories(oldCategories, imageItem);
-                ClassifyProgress += 1f / selectedImages.Count();
+
+                ClassifyProgress += 1f / imageCount;
+                successCount++;
+                ClassifyProgressText = $" ({successCount}/{imageCount}) {imageItem.Name}被识别为{string.Join(",", imageItem.Categories)}";
             }
             catch (Exception ex)
             {
-                classifyFailMessageBuilder.AppendLine($"图片文件[{imageItem.Path}]在获取AI接口分类结果过程中发生错误{ex.Message}");
+                classifyFailMessageBuilder.AppendLine($"图片文件[{imageItem.Path}]在获取AI接口分类结果过程中发生错误{ex.Message}{Environment.NewLine}返回文本{responeseString}");
                 continue;
+            }
+            finally
+            {
+                finishCount++;
             }
         }
 
+        await dialogService.ConfirmAsync("分类完成", $"已完成分类，{imageCount}图片中共有{successCount}幅完成分类并保存");
         IsClassifying = false;
     }
 
@@ -388,8 +431,13 @@ public partial class ClassifyPageViewModel(ImageStorageService imageStorageServi
     /// 结束分类请求
     /// </summary>
     [RelayCommand]
-    public void CancelClassify()
+    public async Task CancelClassify()
     {
+        if (!(await dialogService.ConfirmAsync("终止分类", "图片还没全部分类完成,确定停止吗?")))
+        {
+            return;
+        }
+
         _isRequestEndClassify = true;
     }
 
@@ -424,12 +472,15 @@ public partial class ClassifyPageViewModel(ImageStorageService imageStorageServi
                     TopK = result.TopK,
                 };
 
+                ModelId = result.ModelId;
                 database.GetCollection<ModelSetting>().Update(oldSetting);
             }
             else
             {
-                ModelSettings.Add(modelSetting);
-                database.GetCollection<ModelSetting>().Insert(modelSetting);
+                ModelSettings.Add(result);
+
+                ModelId = result.ModelId;
+                database.GetCollection<ModelSetting>().Update(result);
             }
         }
     }

@@ -10,7 +10,7 @@
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
     xmlns:viewModel="clr-namespace:PictureHamster.App.ViewModels"
-    Title="ClassifyPage"
+    Title="图片分类"
     x:DataType="viewModel:ClassifyPageViewModel">
 
     <ScrollView>
@@ -129,10 +129,19 @@
             </CollectionView>
 
             <!--  Row 5: 进度条  -->
-            <ProgressBar
+            <Grid
                 Grid.Row="5"
-                HeightRequest="20"
-                Progress="{Binding ClassifyProgress}" />
+                ColumnDefinitions="*,Auto"
+                ColumnSpacing="10">
+                <ProgressBar
+                    Grid.Column="0"
+                    HeightRequest="20"
+                    Progress="{Binding ClassifyProgress}" />
+                <Label
+                    Grid.Column="1"
+                    Text="{Binding ClassifyProgressText}"
+                    VerticalOptions="Center" />
+            </Grid>
 
             <!--  Row 6: 跳过已分类的图像  -->
             <StackLayout
