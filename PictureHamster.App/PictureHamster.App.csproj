@@ -27,8 +27,8 @@
 		<ApplicationId>com.zzminer.picturehamster.app</ApplicationId>
 
 		<!-- Versions -->
-		<ApplicationDisplayVersion>1.1</ApplicationDisplayVersion>
-		<ApplicationVersion>2</ApplicationVersion>
+		<ApplicationDisplayVersion>1.2</ApplicationDisplayVersion>
+		<ApplicationVersion>3</ApplicationVersion>
 
 		<!-- To develop, package, and publish an app to the Microsoft Store, see: https://aka.ms/MauiTemplateUnpackaged -->
 		<WindowsPackageType>None</WindowsPackageType>
@@ -46,10 +46,18 @@
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-android|AnyCPU'">
 	  <AndroidPackageFormat>apk</AndroidPackageFormat>
 	  <EnableLLVM>True</EnableLLVM>
+	  <RunAOTCompilation>True</RunAOTCompilation>
+	  <DebugSymbols>True</DebugSymbols>
+	  <PublishTrimmed>True</PublishTrimmed>
+	  <TrimMode>link</TrimMode>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-android|AnyCPU'">
 	  <EnableLLVM>True</EnableLLVM>
+	  <RunAOTCompilation>True</RunAOTCompilation>
+	  <EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
+	  <PublishTrimmed>True</PublishTrimmed>
+	  <TrimMode>link</TrimMode>
 	</PropertyGroup>
 
 	<ItemGroup>
